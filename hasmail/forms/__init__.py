@@ -20,3 +20,7 @@ class SendEmailForm(Form):
     recipient = wtforms.TextField(__("Recipient"), validators=[wtforms.validators.Required()])
     body = MarkdownField(__("Body"), validators=[wtforms.validators.Required()])
 
+
+class EmailDraftform(Form):
+    campaign_id = wtforms.SelectField(__("Campaign"), description="Campaign", coerce=int, validators=[wtforms.validators.Required()])
+    template = MarkdownField(__("Template"), validators=[wtforms.validators.Required()])
