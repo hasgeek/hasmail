@@ -2,7 +2,7 @@
   text-indent: -119988px;
   overflow: hidden;
   text-align: left;
-  background-image: url('../img/logo.png?1386841977');
+  background-image: url('../img/logo.png?1386845092');
   background-repeat: no-repeat;
   background-position: 50% 50%;
   width: 120px;
@@ -15,7 +15,7 @@
   text-indent: -119988px;
   overflow: hidden;
   text-align: left;
-  background-image: url('../img/logo.png?1386841977');
+  background-image: url('../img/logo.png?1386845092');
   background-repeat: no-repeat;
   background-position: 50% 50%;
   width: 120px;
@@ -27,9 +27,71 @@
   text-indent: -1000px;
 }
 
+#hg-networkbar .container {
+  width: 100%;
+}
+
 @media only screen and (-webkit-min-device-pixel-ratio: 1.5) {
   #logo {
-    background-image: url('../img/logo@2x.png?1386841968');
+    background-image: url('../img/logo@2x.png?1386845092');
     -webkit-background-size: 120px 75px;
+  }
+}
+header {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0;
+}
+
+#page-header {
+  padding-left: 10px;
+}
+
+#main-content {
+  margin-top: -12px;
+}
+
+.display-area {
+  margin: 0 -15px 0 -15px;
+  border-bottom: 1px solid #cccccc;
+}
+.display-area:first-child {
+  border-right: 1px solid #cccccc;
+}
+.display-area .title {
+  background-color: rgba(51, 51, 51, 0.07);
+  border-bottom: 1px solid #cccccc;
+  display: block;
+  width: 100%;
+  padding: 5px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1em;
+}
+.display-area .content {
+  padding: 10px;
+  width: 100%;
+  height: 200px;
+}
+.display-area textarea {
+  border: 0;
+}
+
+.settings-area {
+  background-color: rgba(51, 51, 51, 0.07);
+  margin-left: -15px;
+  margin-right: -15px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+#root {
+  overflow: hidden !important;
+}
+
+@media screen and (min-width: 768px) {
+  .settings-area {
+    margin-bottom: -5000px;
+    padding-bottom: 5000px;
   }
 }
