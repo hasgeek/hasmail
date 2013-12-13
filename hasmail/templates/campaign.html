@@ -1,0 +1,15 @@
+{% extends "panes.html" %}
+{% from "macros.html" import sidebar %}
+{% from "baseframe/forms.html" import renderform %}
+{% block title %}{{ campaign.title }}{% endblock %}
+
+{% block listpane %}
+  {{ sidebar(campaign, campaign.recipients, 'c') }}
+{% endblock %}
+
+{% block contentpane %}
+  <div class="page-header">
+    <h1>{{ campaign.title }}</h1>
+  </div>
+  {{ renderform(form, 'settings', "Save") }}
+{% endblock %}

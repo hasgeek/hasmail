@@ -1,0 +1,25 @@
+{% extends "panes.html" %}
+{% block title %}{% trans %}Dashboard{% endtrans %}{% endblock %}
+
+{% block listpane %}
+  <ul class="nav nav-pills nav-stacked nav-pills-filling nav-point-right">
+    <li><a href="{{ url_for('dashboard') }}"><div id="logo">{% trans %}Dashboard{% endtrans %}</div></a></li>
+    {%- if campaigns %}{% for c in campaigns %}
+      <li><a href="{{ c.url_for() }}">{{ c.title }}</a></li>
+    {% endfor %}{% endif %}
+  </ul>
+{% endblock %}
+
+{% block contentpane %}
+  {%- if not campaigns %}
+    <p>
+      You haven’t written any mail yet. 
+    </p>
+  {%- endif %}
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <p>
+      <button type="submit" class="btn btn-primary">New email</button>
+    </p>
+  </form>
+{% endblock %}

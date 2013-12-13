@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from flask import Flask
 from flask.ext.lastuser import Lastuser
 from flask.ext.lastuser.sqlalchemy import UserManager
-from baseframe import baseframe, assets, Version
+from baseframe import baseframe, assets, Version, _, __
 import coaster.app
 from ._version import __version__
 

@@ -2,10 +2,9 @@
 
 from flask import redirect, flash, Markup, escape
 from coaster.views import get_next_url
-from baseframe import _
 from baseframe.forms import render_message
 
-from .. import app, lastuser
+from .. import _, app, lastuser
 from ..models import db
 
 

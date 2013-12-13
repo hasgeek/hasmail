@@ -1,0 +1,10 @@
+{% macro sidebar(campaign, recipients, active=none) %}
+  <ul class="nav nav-pills nav-stacked nav-pills-filling nav-point-right">
+    <li><a href="{{ url_for('dashboard') }}"><div id="logo">{% trans %}Dashboard{% endtrans %}</div></a></li>
+    <li {%- if active == 'c' %} class="active"{% endif %}><a href="{{ campaign.url_for() }}">{% trans %}Settings{% endtrans %}</a></li>
+    <li {%- if active == 't' %} class="active"{% endif %}><a href="{{ campaign.url_for('template') }}">{% trans %}Template{% endtrans %}</a></li>
+    {%- if recipients %}{% for r in recipients %}
+      <li {%- if active == r %} class="active"{% endif %}><a href="{{ r.url_for() }}">{{ r.fullname }}</a></li>
+    {% endfor %}{% endif %}
+  </ul>
+{% endmacro %}

@@ -1,39 +1,16 @@
 {% extends "baseframe.html" -%}
 {% from "baseframe/components.html" import responsive_networkbar with context %}
 
-{% block headerbox -%}
-	<header>
-		{% block networkbar %}{{ responsive_networkbar(siteid=config['SITE_ID'], login=config['LASTUSER_CLIENT_ID'] and true or false) }}{% endblock %}
-		<div>
-			<div id="page-header">
-				{% block logo -%}
-					<div id="logo"><a href="{{ request.script_root or '/' }}" title="Home">{{ config['SITE_TITLE'] }}</a></div>
-				{%- endblock %}
-				{%- block header %}{% endblock %}
-			</div>
-		</div>
-	</header>
+{% block networkbar %}{{ responsive_networkbar(siteid=config['SITE_ID'], login=config['LASTUSER_CLIENT_ID'] and true or false) }}{% endblock %}
+
+{% block baseheadline -%}
+  {% block headline -%}
+    <div class="page-header">
+      <h1>{{ self.title()|e }}</h1>
+    </div>
+  {%- endblock %}
 {%- endblock %}
 
-{% block main -%}
-	{% block contenthead %}{% endblock %}
-	<div id="main-content"  data-ng-app="">
-		{%- block messages %}{{ flash_messages() }}{% endblock %}
-		{%- block baseheadline %}
-			{% block headline -%}
-			    <div class="page-header">
-			    	<h1>{{ self.title()|e }}</h1>
-			    </div>
-			{%- endblock %}
-		{% endblock %}
-		{%- block basecontent %}
-			{% block content %}{% endblock %}
-		{% endblock %}
-	</div>
+{% block basecontent -%}
+  {% block content %}{% endblock %}
 {%- endblock %}
-
-{% block layoutscripts %}
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.4/angular.min.js"></script>
-	{% block footerscripts %}{% endblock %}
-{% endblock %}
-
