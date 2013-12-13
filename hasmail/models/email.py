@@ -67,6 +67,7 @@ class EmailDraft(BaseScopedIdMixin, db.Model):
         cascade='all, delete-orphan', order_by='EmailDraft.url_id'))
     parent = db.synonym('campaign')
 
+    subject = db.Column(db.Unicode(250), nullable=False, default=u"")
     template = MarkdownColumn('template', nullable=False, default=u"")
 
     __table_args__ = (db.UniqueConstraint('campaign_id', 'url_id'),)
@@ -93,6 +94,7 @@ class EmailRecipient(BaseMixin, db.Model):
 
     # Customised template for this recipient
     # TODO: Discover template for linked groups (only one recipient will have a custom template that is used for all)
+    subject = db.Column(db.Unicode(250), nullable=True)
     template = MarkdownColumn('template', nullable=True)
 
     # Rendered version of user's template

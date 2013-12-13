@@ -1,11 +1,11 @@
 {% extends "panes.html" %}
 {% from "macros.html" import sidebar %}
-{% block title %}{% trans %}Dashboard{% endtrans %}{% endblock %}
+{% block title %}{{ recipient.fullname }} &mdash; {{ campaign.title }}{% endblock %}
 
 {% block listpane %}
   {{ sidebar(campaign, campaign.recipients, recipient) }}
 {% endblock %}
 
-{% block writepane %}
+{% block contentpane %}
   Custom template comes here
 {% endblock %}
