@@ -1,3 +1,113 @@
+.wizard {
+  border: 1px solid #d5d5d5;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+  border-radius: 3px;
+  background-color: whitesmoke;
+  position: relative;
+  overflow: hidden;
+}
+.wizard ul {
+  list-style: none outside none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+.wizard ul.previous-disabled li.complete {
+  cursor: default;
+}
+.wizard ul.previous-disabled li.complete:hover {
+  background: #f3f4f5;
+  color: #468847;
+  cursor: default;
+}
+.wizard ul.previous-disabled li.complete:hover .chevron:before {
+  border-left-color: #f3f4f5;
+}
+.wizard ul li {
+  float: left;
+  margin: 0;
+  padding: 0 20px 0 30px;
+  height: 46px;
+  line-height: 46px;
+  position: relative;
+  background: #ededed;
+  color: #999999;
+  font-size: 16px;
+  cursor: default;
+}
+.wizard ul li a {
+  display: block;
+  margin: 0 -20px 0 -30px;
+  padding: 0 20px 0 30px;
+}
+.wizard ul li a:hover, .wizard ul li a:focus {
+  text-decoration: none;
+}
+.wizard ul li .chevron {
+  border: 24px solid transparent;
+  border-left: 14px solid #d5d5d5;
+  border-right: 0;
+  display: block;
+  position: absolute;
+  right: -14px;
+  top: 0;
+  z-index: 1;
+}
+.wizard ul li .chevron:before {
+  border: 24px solid transparent;
+  border-left: 14px solid #ededed;
+  border-right: 0;
+  content: "";
+  display: block;
+  position: absolute;
+  right: 1px;
+  top: -24px;
+}
+.wizard ul li.complete {
+  background: #f3f4f5;
+  color: #468847;
+}
+.wizard ul li.complete a:hover {
+  background: #e7eff8;
+}
+.wizard ul li.complete a:hover .chevron:before {
+  border-left: 14px solid #e7eff8;
+}
+.wizard ul li.complete .chevron:before {
+  border-left: 14px solid #f3f4f5;
+}
+.wizard ul li.active {
+  background: #f1f6fc;
+  color: #3a87ad;
+}
+.wizard ul li.active .chevron:before {
+  border-left: 14px solid #f1f6fc;
+}
+.wizard ul li .badge {
+  margin-right: 8px;
+}
+.wizard ul li:first-child {
+  border-radius: 4px 0 0 4px;
+  padding-left: 20px;
+}
+.wizard ul li:first-child a {
+  margin-left: -20px;
+  padding-left: 20px;
+}
+
+.step-content .step-pane {
+  display: none;
+}
+.step-content .active {
+  display: block;
+}
+.step-content .active .btn-group .active {
+  display: inline-block;
+}
+
 #logo {
   text-indent: -119988px;
   overflow: hidden;
@@ -38,8 +148,22 @@
     width: 100%;
   }
 
+  #page-header {
+    border-bottom: none;
+    position: relative;
+  }
+  #page-header .wizard {
+    position: absolute;
+    left: 130px;
+    bottom: 13px;
+  }
+
+  header {
+    border-bottom: 1px solid #d5d5d5;
+  }
+
   #fullpane {
-    top: 31px;
+    top: 107px;
     left: 0;
     right: 0;
     position: fixed;

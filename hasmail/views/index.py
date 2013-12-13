@@ -19,7 +19,7 @@ def dashboard():
         db.session.add(campaign)
         db.session.commit()
         return redirect(campaign.url_for(), 303)
-    return render_template('dashboard.html', campaigns=g.user.campaigns, form=form)
+    return render_template('dashboard.html', campaigns=g.user.campaigns, form=form, wstep=1)
 
 
 @app.route('/wip')

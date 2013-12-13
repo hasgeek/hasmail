@@ -1,9 +1,48 @@
 {% extends "layout.html" %}
+{% from "baseframe/components.html" import flash_messages -%}
 
+{#
 {% block headerbox %}
   <header>
     {% block networkbar %}{{ responsive_networkbar(siteid=config['SITE_ID'], login=config['LASTUSER_CLIENT_ID'] and true or false) }}{% endblock %}
   </header>
+{% endblock %}
+#}
+
+{% block header %}
+  <div class="wizard">
+    <ul class="steps">
+      <li {%- if wstep > 1 %} class="complete" {%- elif wstep == 1 %} class="active" {%- endif %}><a href="{{ url_for('dashboard') }}"><span class="badge badge-info">1</span> Start <span class="chevron"></span></a></li>
+      <li {%- if wstep > 2 %} class="complete" {%- elif wstep == 2 %} class="active" {%- endif %}>
+        {%- if campaign %}
+          <a href="{{ campaign.url_for() }}"><span class="badge badge-info">2</span> Details <span class="chevron"></span></a>
+        {%- else %}
+          <span class="badge badge-info">2</span> Details <span class="chevron"></span>
+        {%- endif -%}
+      </li>
+      <li {%- if wstep > 3 %} class="complete" {%- elif wstep == 3 %} class="active" {%- endif %}>
+        {%- if campaign %}
+          <a href="{{ campaign.url_for('recipients') }}"><span class="badge badge-info">3</span> Recipients <span class="chevron"></span></a>
+        {%- else %}
+          <span class="badge badge-info">3</span> Recipients <span class="chevron"></span>
+        {%- endif -%}
+      </li>
+      <li {%- if wstep > 4 %} class="complete" {%- elif wstep == 4 %} class="active" {%- endif %}>
+        {%- if campaign %}
+          <a href="{{ campaign.url_for('template') }}"><span class="badge badge-info">4</span> Write <span class="chevron"></span></a>
+        {%- else %}
+          <span class="badge badge-info">4</span> Write <span class="chevron"></span>
+        {%- endif -%}
+      </li>
+      <li {%- if wstep > 5 %} class="complete" {%- elif wstep == 5 %} class="active" {%- endif %}>
+        {%- if campaign %}
+          <a href="{{ campaign.url_for('send') }}"><span class="badge badge-info">5</span> Send <span class="chevron"></span></a>
+        {%- else %}
+          <span class="badge badge-info">5</span> Send <span class="chevron"></span>
+        {%- endif -%}
+      </li>
+    </ul>
+  </div>
 {% endblock %}
 
 {% block main %}
@@ -13,6 +52,12 @@
         {% block listpane %}{% endblock %}
       </div>
       <div id="contentpane" class="pane col-lg-9 col-md-8 col-sm-8 col-xs-12">
+        {%- block messages %}{{ flash_messages() }}{% endblock %}
+        {%- block headline -%}
+          <div class="page-header">
+            <h1>{{ self.title() }}</h1>
+          </div>
+        {%- endblock %}
         {% block contentpane %}{% endblock %}
       </div>
     </div>
