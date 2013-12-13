@@ -1,10 +1,15 @@
 {% macro sidebar(campaign, recipients, active=none) %}
-  <ul class="nav nav-pills nav-stacked nav-pills-filling nav-point-right">
-    <li><a href="{{ url_for('dashboard') }}"><div id="logo">{% trans %}Dashboard{% endtrans %}</div></a></li>
-    <li {%- if active == 'c' %} class="active"{% endif %}><a href="{{ campaign.url_for() }}">{% trans %}Settings{% endtrans %}</a></li>
-    <li {%- if active == 't' %} class="active"{% endif %}><a href="{{ campaign.url_for('template') }}">{% trans %}Template{% endtrans %}</a></li>
+  <div class="nav-pills-toolbar nav-pills-logo-container">
+    <ul class="nav nav-pills nav-pills-bottom-aligned">
+      <li class="nav-pills-logo-link"><a href="{{ url_for('dashboard') }}"><div id="logo">{% trans %}Dashboard{% endtrans %}</div></a></li>
+      <li {%- if active == 's' %} class="active"{% endif %}><a href="{{ campaign.url_for() }}"><i class="icon-wrench"></i></a></li>
+      <li {%- if active == 'r' %} class="active"{% endif %}><a href="{{ campaign.url_for('recipients') }}"><i class="icon-user"></i></a></li>
+    </ul>
+  </div>
+  <div class="list-group list-group-discreet {#- nav nav-pills nav-stacked nav-pills-filling nav-point-right -#}">
+    <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('template') }}">{% trans %}Write email{% endtrans %}</a>
     {%- if recipients %}{% for r in recipients %}
-      <li {%- if active == r %} class="active"{% endif %}><a href="{{ r.url_for() }}">{{ r.fullname }}</a></li>
+      <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for() }}">{{ r.fullname }}</a>
     {% endfor %}{% endif %}
-  </ul>
+  </div>
 {% endmacro %}

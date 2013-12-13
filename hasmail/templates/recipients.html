@@ -1,0 +1,11 @@
+{% extends "panes.html" %}
+{% from "macros.html" import sidebar %}
+{% block title %}{{ campaign.title }}{% endblock %}
+
+{% block listpane %}
+  {{ sidebar(campaign, campaign.recipients, 'r') }}
+{% endblock %}
+
+{% block contentpane %}
+  Recipient data table comes here
+{% endblock %}

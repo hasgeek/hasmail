@@ -38,10 +38,6 @@
     width: 100%;
   }
 
-  #page-header {
-    border-bottom: none;
-  }
-
   #fullpane {
     top: 31px;
     left: 0;
@@ -69,7 +65,48 @@
     padding: 0;
   }
 
+  .list-group-discreet .list-group-item {
+    border: none;
+    border-radius: 0;
+    background-color: inherit;
+  }
+  .list-group-discreet a.list-group-item:hover, .list-group-discreet a.list-group-item:focus {
+    background-color: #eeeeee;
+  }
+  .list-group-discreet .list-group-item.active, .list-group-discreet .list-group-item.active:hover, .list-group-discreet .list-group-item.active:focus {
+    background-color: #428bca;
+  }
+
   .nav-pills-filling > li > a {
     border-radius: 0;
+  }
+
+  .nav-pills-toolbar {
+    margin-bottom: 12px;
+  }
+
+  .nav-pills-logo-container {
+    margin-top: -23px;
+  }
+  .nav-pills-logo-container .nav > li > a {
+    padding: 8px 13px;
+  }
+
+  .nav-pills-logo-link {
+    position: relative;
+    bottom: -23px;
+  }
+
+  .nav > li.nav-pills-logo-link > a:hover, .nav > li.nav-pills-logo-link > a:focus {
+    background-color: inherit;
+  }
+
+  .nav-pills-bottom-aligned {
+    display: table-cell;
+  }
+  .nav-pills-bottom-aligned > li {
+    display: inline-block;
+    float: none;
+    vertical-align: bottom;
   }
 }

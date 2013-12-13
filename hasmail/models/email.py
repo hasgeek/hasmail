@@ -55,6 +55,8 @@ class EmailCampaign(BaseNameMixin, db.Model):
     def url_for(self, action='view'):
         if action == 'view' or action == 'edit':
             return url_for('campaign_view', campaign=self.name)
+        elif action == 'recipients':
+            return url_for('campaign_recipients', campaign=self.name)
         elif action == 'template':
             return url_for('campaign_template', campaign=self.name)
 

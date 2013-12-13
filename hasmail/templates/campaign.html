@@ -4,12 +4,12 @@
 {% block title %}{{ campaign.title }}{% endblock %}
 
 {% block listpane %}
-  {{ sidebar(campaign, campaign.recipients, 'c') }}
+  {{ sidebar(campaign, campaign.recipients, 's') }}
 {% endblock %}
 
 {% block contentpane %}
   <div class="page-header">
     <h1>{{ campaign.title }}</h1>
   </div>
-  {{ renderform(form, 'settings', "Save") }}
+  {{ renderform(form, 'settings', "Save", style='vert') }}
 {% endblock %}

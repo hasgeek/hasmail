@@ -29,9 +29,6 @@ $color-brand-primary: #428bca
   .container
     width: 100%  // Bootstrap 3 adjusts gracefully to this
 
-  #page-header
-    border-bottom: none
-
   #fullpane
     top: 31px
     left: 0
@@ -57,8 +54,44 @@ $color-brand-primary: #428bca
   .unpadded
     padding: 0
 
+  .list-group-discreet
+    .list-group-item
+      border: none
+      border-radius: 0
+      background-color: inherit
+
+    a.list-group-item:hover, a.list-group-item:focus
+      background-color: #eee
+
+    .list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus
+      background-color: $color-brand-primary
+
   .nav-pills-filling > li > a
     border-radius: 0
+
+  .nav-pills-toolbar
+    margin-bottom: $body-line-height / 2
+
+  .nav-pills-logo-container
+    margin-top: -23px
+
+    .nav > li > a
+      padding: 8px 13px
+
+  .nav-pills-logo-link
+    position: relative
+    bottom: -23px
+
+  .nav > li.nav-pills-logo-link > a:hover, .nav > li.nav-pills-logo-link > a:focus
+    background-color: inherit
+
+  .nav-pills-bottom-aligned
+    display: table-cell
+
+    & > li
+      display: inline-block
+      float: none
+      vertical-align: bottom
 
   // .nav-point-right > li.active > a
   //   position: relative

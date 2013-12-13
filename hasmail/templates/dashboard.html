@@ -2,8 +2,12 @@
 {% block title %}{% trans %}Dashboard{% endtrans %}{% endblock %}
 
 {% block listpane %}
+  <div class="nav-pills-toolbar nav-pills-logo-container">
+    <ul class="nav nav-pills nav-pills-bottom-aligned">
+      <li class="nav-pills-logo-link"><a href="{{ url_for('dashboard') }}"><div id="logo">{% trans %}Dashboard{% endtrans %}</div></a></li>
+    </ul>
+  </div>
   <ul class="nav nav-pills nav-stacked nav-pills-filling nav-point-right">
-    <li><a href="{{ url_for('dashboard') }}"><div id="logo">{% trans %}Dashboard{% endtrans %}</div></a></li>
     {%- if campaigns %}{% for c in campaigns %}
       <li><a href="{{ c.url_for() }}">{{ c.title }}</a></li>
     {% endfor %}{% endif %}

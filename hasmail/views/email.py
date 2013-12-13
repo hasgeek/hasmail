@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from flask import flash, url_for, render_template
+from flask import flash, render_template
 from coaster.views import load_model, load_models
-from baseframe.forms import render_redirect, render_form
+from baseframe.forms import render_redirect
 
-from .. import _, app, lastuser
+from .. import app, lastuser
 from ..models import db, EmailCampaign, EmailRecipient
 from ..forms import CampaignSettingsForm
 
@@ -27,6 +27,13 @@ def campaign_view(campaign):
 @load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit', kwargs=True)
 def campaign_template(campaign, kwargs=None):
     return render_template('template.html', campaign=campaign)
+
+
+@app.route('/mail/<campaign>/recipients', defaults={'version': None})
+@lastuser.requires_login
+@load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit')
+def campaign_recipients(campaign):
+    return render_template('recipients.html', campaign=campaign)
 
 
 @app.route('/mail/<campaign>/<recipient>', methods=('GET', 'POST'))
