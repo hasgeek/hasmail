@@ -17,7 +17,11 @@
 {% endblock %}
 
 {% block contentpane %}
-  {%- if not campaigns %}
+  {%- if campaigns %}
+    <p>
+      Pick an email from the sidebar or send a new one.
+    </p>
+  {%- else %}
     <p>
       You haven’t written any mail yet. 
     </p>

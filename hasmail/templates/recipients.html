@@ -7,9 +7,12 @@
 {% endblock %}
 
 {% block contentpane %}
-  {%- if recipients %}
+  {%- if campaign.recipients %}
     Recipient data table comes here
   {%- else %}
-    <div class="alert alert-info">You have not specified any recipients</div>
+    <p>
+      You have not specified any recipients. <a href="{{ campaign.url_for('edit') }}">Try again?</a>
+      You can also <a href="{{ campaign.url_for('template') }}">write a message now</a> and list the recipients later.
+    </p>
   {%- endif %}
 {% endblock %}

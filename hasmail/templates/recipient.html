@@ -1,6 +1,6 @@
 {% extends "panes.html" %}
 {% from "macros.html" import sidebar %}
-{% block title %}{{ recipient.fullname }} &mdash; {{ campaign.title }}{% endblock %}
+{% block title %}{{ recipient.fullname }}: {{ campaign.title }}{% endblock %}
 
 {% block listpane %}
   {{ sidebar(campaign, campaign.recipients, recipient) }}

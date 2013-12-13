@@ -2,7 +2,7 @@
 
 from flask import url_for
 from coaster.utils import buid, md5sum, newsecret, LabeledEnum
-from . import db, BaseMixin, BaseNameMixin, BaseScopedIdMixin, MarkdownColumn
+from . import db, BaseMixin, BaseNameMixin, BaseScopedIdMixin, MarkdownColumn, JsonDict
 from .user import User
 from .. import __
 
@@ -90,6 +90,8 @@ class EmailRecipient(BaseMixin, db.Model):
 
     _email = db.Column('email', db.Unicode(80), nullable=False)
     md5sum = db.Column(db.String(32), nullable=False)
+
+    data = db.Column(JsonDict)
 
     opentoken = db.Column(db.Unicode(44), nullable=False, default=newsecret, unique=True)
     opened = db.Column(db.Boolean, nullable=False, default=False)
@@ -182,3 +184,7 @@ class EmailRecipient(BaseMixin, db.Model):
         if self.linkgroup is None and self.campaign is not None:
             self.linkgroup = (db.session.query(EmailRecipient.linkgroup).filter(
                 EmailRecipient.campaign == self.campaign).first() or 0) + 1
+
+    def url_for(self, action='view'):
+        if action == 'view' or action == 'edit':
+            return url_for('recipient_view', campaign=self.campaign.name, recipient=self.md5sum)

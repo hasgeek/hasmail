@@ -40,11 +40,9 @@
 }
 .wizard ul li a {
   display: block;
+  color: #222222;
   margin: 0 -20px 0 -30px;
   padding: 0 20px 0 30px;
-}
-.wizard ul li a:hover, .wizard ul li a:focus {
-  text-decoration: none;
 }
 .wizard ul li .chevron {
   border: 24px solid transparent;
@@ -70,20 +68,29 @@
   background: #f3f4f5;
   color: #468847;
 }
-.wizard ul li.complete a:hover {
-  background: #e7eff8;
-}
-.wizard ul li.complete a:hover .chevron:before {
-  border-left: 14px solid #e7eff8;
-}
 .wizard ul li.complete .chevron:before {
   border-left: 14px solid #f3f4f5;
+}
+.wizard ul li a:hover, .wizard ul li a:focus {
+  text-decoration: none;
+  background: #e7eff8;
+  color: #468847;
+}
+.wizard ul li a:hover .chevron:before, .wizard ul li a:focus .chevron:before {
+  border-left: 14px solid #e7eff8;
 }
 .wizard ul li.active {
   background: #f1f6fc;
   color: #3a87ad;
 }
 .wizard ul li.active .chevron:before {
+  border-left: 14px solid #f1f6fc;
+}
+.wizard ul li.active a:hover, .wizard ul li.active a:focus {
+  background: #f1f6fc;
+  color: #3a87ad;
+}
+.wizard ul li.active a:hover .chevron:before, .wizard ul li.active a:focus .chevron:before {
   border-left: 14px solid #f1f6fc;
 }
 .wizard ul li .badge {

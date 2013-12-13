@@ -12,6 +12,7 @@ def index():
 
 @app.route('/mail', methods=('GET', 'POST'))
 @lastuser.requires_login
+# @lastuser.requires_permission('emailuser')  # To prevent public service from being abused
 def dashboard():
     form = BlankForm()
     if form.validate_on_submit():
