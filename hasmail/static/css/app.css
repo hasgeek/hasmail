@@ -241,3 +241,7 @@
     vertical-align: bottom;
   }
 }
+.editable-click, a.editable-click {
+  color: inherit;
+  border-bottom: 1px solid transparent;
+}

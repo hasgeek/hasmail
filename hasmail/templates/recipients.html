@@ -1,4 +1,4 @@
-{% extends "panes.html" %}
+{% extends "onepane.html" %}
 {% from "macros.html" import sidebar %}
 {% block title %}{{ campaign.title }}{% endblock %}
 
@@ -8,7 +8,32 @@
 
 {% block contentpane %}
   {%- if campaign.recipients %}
-    Recipient data table comes here
+    <table class="table table-condensed">
+      <thead>
+        <tr>
+          <th>fullname</th>
+          <th>email</th>
+          <th>firstname</th>
+          <th>lastname</th>
+          {%- for header in campaign.headers %}
+            <th>{{ header }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {%- for r in campaign.recipients %}{% with editurl = r.url_for('edit') %}
+        <tr>
+          <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="fullname">{{ r.fullname }}</a></td>
+          <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="email" data-value="{{ r.email }}">{{ r.email }} {%- if not r.is_email_valid() %} <i class="icon-warning-sign"></i>{% endif %}</a></td>
+          <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="firstname">{{ r.firstname }}</a></td>
+          <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="lastname">{{ r.lastname }}</a></td>
+          {%- for header in campaign.headers %}
+            <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="{{ header }}">{{ r.data.get(header) }}</a></td>
+          {%- endfor %}
+        </tr>
+        {%- endwith %}{% endfor %}
+      </tbody>
+    </table>
   {%- else %}
     <p>
       You have not specified any recipients. <a href="{{ campaign.url_for('edit') }}">Try again?</a>

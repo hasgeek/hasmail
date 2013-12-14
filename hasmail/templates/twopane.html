@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% from "baseframe/components.html" import flash_messages -%}
+
+{#
+{% block headerbox %}
+  <header>
+    {% block networkbar %}{{ responsive_networkbar(siteid=config['SITE_ID'], login=config['LASTUSER_CLIENT_ID'] and true or false) }}{% endblock %}
+  </header>
+{% endblock %}
+#}
+
+{% block main %}
+  <div id="fullpane" class="container">
+    <div class="row">
+      <div id="listpane" class="pane col-lg-3 col-md-4 col-sm-4 col-xs-12 sidebar unpadded">
+        {% block listpane %}{% endblock %}
+      </div>
+      <div id="contentpane" class="pane col-lg-9 col-md-8 col-sm-8 col-xs-12">
+        {%- block messages %}{{ flash_messages() }}{% endblock %}
+        {%- block headline -%}
+          <div class="page-header">
+            <h1>{{ self.title() }}</h1>
+          </div>
+        {%- endblock %}
+        {% block contentpane %}{% endblock %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
