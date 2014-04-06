@@ -2,6 +2,7 @@
 
 import re
 from flask import url_for
+from sqlalchemy.orm import defer
 from coaster.utils import buid, md5sum, newsecret, LabeledEnum
 from . import db, BaseNameMixin, BaseScopedIdMixin, MarkdownColumn, JsonDict
 from .user import User
@@ -66,6 +67,11 @@ class EmailCampaign(BaseNameMixin, db.Model):
         elif action == 'template':
             return url_for('campaign_template', campaign=self.name)
 
+    def draft(self):
+        # TODO: Make this not load the full content of drafts.
+        if self.drafts:
+            return self.drafts[-1]
+
 
 class EmailDraft(BaseScopedIdMixin, db.Model):
     __tablename__ = 'email_draft'
@@ -74,9 +80,10 @@ class EmailDraft(BaseScopedIdMixin, db.Model):
     campaign = db.relationship(EmailCampaign, backref=db.backref('drafts',
         cascade='all, delete-orphan', order_by='EmailDraft.url_id'))
     parent = db.synonym('campaign')
+    revision_id = db.synonym('url_id')
 
     subject = db.Column(db.Unicode(250), nullable=False, default=u"")
-    template = MarkdownColumn('template', nullable=False, default=u"")
+    template = MarkdownColumn('template', nullable=False, default=u"", deferred=True)
 
     __table_args__ = (db.UniqueConstraint('campaign_id', 'url_id'),)
 
@@ -90,10 +97,6 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     _fullname = db.Column('fullname', db.Unicode(80), nullable=True)
     _firstname = db.Column('firstname', db.Unicode(80), nullable=True)
     _lastname = db.Column('lastname', db.Unicode(80), nullable=True)
-
-    campaign = db.relationship(EmailCampaign, backref=db.backref('recipients',
-        cascade='all, delete-orphan', order_by=(_fullname, _firstname, _lastname)))
-    parent = db.synonym('campaign')
 
     _email = db.Column('email', db.Unicode(80), nullable=False, index=True)
     md5sum = db.Column(db.String(32), nullable=False, index=True)
@@ -111,10 +114,10 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     # Customised template for this recipient
     # TODO: Discover template for linked groups (only one recipient will have a custom template that is used for all)
     subject = db.Column(db.Unicode(250), nullable=True)
-    template = MarkdownColumn('template', nullable=True)
+    template = MarkdownColumn('template', nullable=True, deferred=True)
 
     # Rendered version of user's template, for archival
-    rendered = MarkdownColumn('rendered', nullable=True)
+    rendered = MarkdownColumn('rendered', nullable=True, deferred=True)
 
     # Draft of the campaign template that the custom template is linked to (for updating before finalising)
     draft_id = db.Column(None, db.ForeignKey('email_draft.id'), nullable=True)
@@ -122,6 +125,10 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
 
     # Recipients may be emailed as a group with all emails in the To field. Unique number to identify them
     linkgroup = db.Column(db.Integer, nullable=True)
+
+    campaign = db.relationship(EmailCampaign, backref=db.backref('recipients',
+        cascade='all, delete-orphan', order_by=(draft_id, _fullname, _firstname, _lastname)))
+    parent = db.synonym('campaign')
 
     __table_args__ = (db.UniqueConstraint('campaign_id', 'url_id'),)
 
@@ -190,6 +197,10 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     def is_email_valid(self):
         return EMAIL_RE.match(self.email) is not None
 
+    @property
+    def revision_id(self):
+        return self.draft.revision_id if self.draft else None
+
     def is_latest_draft(self):
         if not self.draft:
             return True
@@ -200,8 +211,27 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
             self.linkgroup = (db.session.query(EmailRecipient.linkgroup).filter(
                 EmailRecipient.campaign == self.campaign).first() or 0) + 1
 
+    def template_data(self):
+        return dict([
+            ('fullname', self.fullname),
+            ('email', self.email),
+            ('firstname', self.firstname),
+            ('lastname', self.lastname),
+            ] + self.data.items() if self.data else [])
+
     def url_for(self, action='view'):
         if action == 'view' or action == 'template':
             return url_for('recipient_view', campaign=self.campaign.name, recipient=self.url_id)
         elif action == 'edit':
             return url_for('recipient_edit', campaign=self.campaign.name, recipient=self.url_id)
+
+    @classmethod
+    def custom_draft_in(cls, campaign):
+        return cls.query.filter(cls.campaign == campaign,
+            cls.draft != None,
+            cls.__table__.c.template_text != None).options(
+                defer('created_at'), defer('updated_at'), defer('email'), defer('md5sum'),
+                defer('fullname'), defer('firstname'), defer('lastname'), defer('data'),
+                defer('opentoken'), defer('opened'), defer('rsvptoken'), defer('rsvp'),
+                defer('linkgroup')
+            ).all()

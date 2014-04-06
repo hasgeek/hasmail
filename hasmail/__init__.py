@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 from flask import Flask
+from flask.ext.rq import RQ
 from flask.ext.lastuser import Lastuser
 from flask.ext.lastuser.sqlalchemy import UserManager
 from baseframe import baseframe, assets, Version, _, __
@@ -33,6 +34,7 @@ def init_for(env):
     coaster.app.init_app(app, env)
     db.init_app(app)
     db.app = app
-    baseframe.init_app(app, requires=['baseframe-bs3', 'bootstrap3-editable', 'hasmail'])
+    RQ(app)  # Pick up RQ configuration from the app
+    baseframe.init_app(app, requires=['baseframe-bs3', 'bootstrap3-editable', 'codemirror-markdown', 'hasmail'])
     lastuser.init_app(app)
     lastuser.init_usermanager(UserManager(db, models.User))

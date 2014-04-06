@@ -1,11 +1,17 @@
 {% extends "twopane.html" %}
-{% from "macros.html" import sidebar %}
+{% from "macros.html" import sidebar, template_form, template_editor %}
 {% block title %}{{ recipient.fullname }}: {{ campaign.title }}{% endblock %}
 
 {% block listpane %}
   {{ sidebar(campaign, campaign.recipients, recipient) }}
 {% endblock %}
 
+{% block headline %}{% endblock %}
+
 {% block contentpane %}
-  Custom template comes here
+  {{ template_form(form) }}
+{% endblock %}
+
+{% block footerscripts %}
+  {{ template_editor() }}
 {% endblock %}

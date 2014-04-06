@@ -1,5 +1,6 @@
 $(function() {
   $.fn.editable.defaults.mode = 'inline';
+  $.fn.editable.defaults.emptytext = '…';
   $.fn.editableform.buttons =
     '<button type="submit" class="btn btn-primary btn-sm editable-submit">'+
       '<i class="icon-ok"></i>'+

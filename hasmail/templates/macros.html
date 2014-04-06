@@ -2,7 +2,101 @@
   <div class="list-group list-group-discreet {#- nav nav-pills nav-stacked nav-pills-filling nav-point-right -#}">
     <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('template') }}">{% trans %}Write email{% endtrans %}</a>
     {%- if recipients %}{% for r in recipients %}
-      <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for() }}">{{ r.fullname }}</a>
+      <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for() }}">{{ r.fullname }}
+        {%- if r.draft -%} … {%- endif -%}
+      </a>
     {% endfor %}{% endif %}
   </div>
+{% endmacro %}
+
+{% macro template_form(form) %}
+  <form id="draft" method="POST" accept-charset="UTF-8">
+    <input type="hidden" name="form.id" value="draft">
+    {{ form.hidden_tag() }}
+    <div class="page-header">
+      {%- if not form.revision_id.data %}
+        {{ form.subject(class="field-subject unstyled", placeholder="Subject", autofocus=true) }}
+      {%- else %}
+        {{ form.subject(class="field-subject unstyled", placeholder="Subject") }}
+      {%- endif %}
+    </div>
+    <div class="row">
+      <div class="col-sm-6 col-md-6" id="templatehalf">
+        {%- if not form.revision_id.data %}
+          {{ form.template(class="unstyled hidden") }}
+        {%- else %}
+          {{ form.template(class="unstyled hidden", autofocus=true) }}
+        {%- endif %}
+      </div>
+      <div class="col-sm-6 col-md-6" id="preview">
+      </div>
+    </div>
+  </form>
+{% endmacro %}
+
+{% macro template_editor() %}
+  <script type="text/javascript">
+    $(function() {
+      {%- raw %}
+      var mustacheOverlay = {
+        token: function(stream, state) {
+          var ch;
+          if (stream.match("{{")) {
+            while ((ch = stream.next()) != null)
+              if (ch == "}" && stream.next() == "}") break;
+            stream.eat("}");
+            return "mustache";
+          }
+          while (stream.next() != null && !stream.match("{{", false)) {}
+          return null;
+        }
+      };
+      {%- endraw %}
+
+      var delay;
+      var editor = CodeMirror.fromTextArea(document.getElementById("template"),
+        { mode: 'gfm',
+          lineNumbers: false,
+          theme: "default",
+          lineWrapping: true,
+          viewportMargin: Infinity,
+          autoCloseBrackets: true,
+          extraKeys: {
+            "Enter": "newlineAndIndentContinueMarkdownList",
+            "Tab": false,
+            "Shift-Tab": false,
+            "Home": "goLineLeft",
+            "End": "goLineRight",
+            "Cmd-Left": "goLineLeft",
+            "Cmd-Right": "goLineRight"
+          }
+        }
+      );
+      $("#template").removeClass('hidden');
+      editor.addOverlay(mustacheOverlay);
+      editor.on('change', function(){
+        clearTimeout(delay);
+        delay = setTimeout(updatePreview, 300);
+      });
+      $("#subject").on('change', function() {
+        clearTimeout(delay);
+        delay = setTimeout(updatePreview, 300);
+      });
+      function updatePreview() {
+        editor.save();
+        $("#draft").ajaxSubmit({
+          dataType: 'json',
+          success: function(r) {
+            $("#preview").html(r.preview);
+          },
+        });
+      }
+      setTimeout(updatePreview, 300);
+      $("#contentpane").on('click', function(e) {
+        if (e.target == this) {
+          editor.focus();
+        }
+      });
+    });
+  </script>
 {% endmacro %}

@@ -18,6 +18,7 @@
           {%- for header in campaign.headers %}
             <th>{{ header }}</th>
           {% endfor %}
+          <th><i class="icon-trash"></i></th>
         </tr>
       </thead>
       <tbody>
@@ -30,6 +31,7 @@
           {%- for header in campaign.headers %}
             <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="{{ header }}">{{ r.data.get(header) }}</a></td>
           {%- endfor %}
+          <td><a data-pk="{{ r.url_id }}" href="#" class="hidden-until-hover"><i class="icon-trash"></i></a></td>
         </tr>
         {%- endwith %}{% endfor %}
       </tbody>

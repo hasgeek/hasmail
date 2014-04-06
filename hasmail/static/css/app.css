@@ -176,7 +176,7 @@
     position: fixed;
     bottom: 57px;
   }
-  #fullpane .row {
+  #fullpane > .row {
     height: 100%;
   }
   #fullpane .pane {
@@ -244,4 +244,56 @@
 .editable-click, a.editable-click {
   color: inherit;
   border-bottom: 1px solid transparent;
+}
+
+#contentpane {
+  position: relative;
+}
+
+.hidden-until-hover {
+  visibility: hidden;
+}
+
+tr:hover .hidden-until-hover {
+  visibility: visible;
+}
+
+.cm-mustache {
+  color: #00ccaa;
+}
+
+.field-subject {
+  display: block;
+  width: 100%;
+  font-weight: 600;
+  font-size: 18px;
+  height: 38px;
+  outline: none;
+  border-bottom: 1px solid #d5d5d5;
+  padding-bottom: 1px;
+}
+.field-subject:focus {
+  border-bottom: 2px solid #428bca;
+  padding-bottom: 0;
+}
+
+#draft .CodeMirror {
+  border: 0 !important;
+  height: auto;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  padding: 0;
+}
+#draft .CodeMirror pre {
+  padding: 0;
+}
+#draft .CodeMirror-scroll {
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+#draft .CodeMirror-focused {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
 }
