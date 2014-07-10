@@ -3,7 +3,21 @@
     <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('template') }}">{% trans %}Write email{% endtrans %}</a>
     {%- if recipients %}{% for r in recipients %}
       <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for() }}">{{ r.fullname }}
-        {%- if r.draft -%} … {%- endif -%}
+        {%- if r.draft %} <i class="fa fa-pencil"></i> {%- endif -%}
+        {%- if r.rendered.text %} <i class="fa fa-envelope-o"></i> {%- endif -%}
+      </a>
+    {% endfor %}{% endif %}
+  </div>
+{% endmacro %}
+
+{% macro report_sidebar(campaign, recipients, active=none) %}
+  <div class="list-group list-group-discreet {#- nav nav-pills nav-stacked nav-pills-filling nav-point-right -#}">
+    <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('report') }}">{% trans %}View report{% endtrans %}</a>
+    {%- if recipients %}{% for r in recipients %}
+      <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for('report') }}">{{ r.fullname }}
+        {%- if r.draft %}  <i class="fa fa-pencil"></i>  {%- endif -%}
+        {%- if r.opened %} <i class="fa fa-eye"></i>
+        {%- elif r.rendered.text %} <i class="fa fa-envelope-o"></i> {%- endif -%}
       </a>
     {% endfor %}{% endif %}
   </div>

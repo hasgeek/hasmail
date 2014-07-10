@@ -11,7 +11,13 @@
 #}
   <ul class="nav nav-pills nav-stacked nav-pills-filling nav-point-right">
     {%- if campaigns %}{% for c in campaigns %}
-      <li><a href="{{ c.url_for() }}">{{ c.title }}</a></li>
+      <li><a href="{{ c.url_for() }}">{{ c.title }}
+        {%- if c.status == STATUS.DRAFT %} <i class="fa fa-pencil"></i>
+        {%- elif c.status == STATUS.QUEUED %} <i class="fa fa-clock-o"></i>
+        {%- elif c.status == STATUS.SENDING %} <i class="fa fa-spin fa-spinner"></i>
+        {%- elif c.status == STATUS.SENT %} <i class="fa fa-envelope-o"></i>
+        {%- endif -%}
+      </a></li>
     {% endfor %}{% endif %}
   </ul>
 {% endblock %}

@@ -18,8 +18,20 @@ def patch_drafts(campaign_id):
         if recipient.draft.revision_id < draft.revision_id:
             key = (recipient.draft.revision_id, draft.revision_id)
             if key not in patches:
-                patches[key] = patcher.patch_make(recipient.draft.template.text, draft.template.text)
-            patched, results = patcher.patch_apply(patches[key], recipient.template.text)
-            recipient.template.text = patched
+                patches[key] = patcher.patch_make(recipient.draft.template, draft.template)
+            patched, results = patcher.patch_apply(patches[key], recipient.template)
+            recipient.template = patched
             recipient.draft = draft
     db.session.commit()
+
+
+def update_recipient(recipient):
+    campaign = recipient.campaign
+    draft = campaign.draft()
+    if recipient.template is not None and recipient.draft != draft:
+        patcher = diff_match_patch()
+        patch = patcher.patch_make(recipient.draft.template, draft.template)
+        patched, results = patcher.patch_apply(patch, recipient.template)
+        recipient.template = patched
+        recipient.draft = draft
+        db.session.commit()

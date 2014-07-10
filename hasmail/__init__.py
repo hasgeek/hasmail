@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 from flask import Flask
+from flask.ext.mail import Mail
 from flask.ext.rq import RQ
 from flask.ext.lastuser import Lastuser
 from flask.ext.lastuser.sqlalchemy import UserManager
@@ -16,6 +17,7 @@ version = Version(__version__)
 # First, make an app
 
 app = Flask(__name__, instance_relative_config=True)
+mail = Mail()
 lastuser = Lastuser()
 
 # Second, import the models and views
@@ -35,6 +37,8 @@ def init_for(env):
     db.init_app(app)
     db.app = app
     RQ(app)  # Pick up RQ configuration from the app
-    baseframe.init_app(app, requires=['baseframe-bs3', 'bootstrap3-editable', 'codemirror-markdown', 'hasmail'])
+    baseframe.init_app(app, requires=['hasmail'],
+        ext_requires=['bootstrap3-editable', 'codemirror-markdown', 'fontawesome', 'baseframe-bs3'])
+    mail.init_app(app)
     lastuser.init_app(app)
     lastuser.init_usermanager(UserManager(db, models.User))

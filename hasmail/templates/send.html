@@ -1,12 +1,12 @@
 {% extends "twopane.html" %}
 {% from "macros.html" import sidebar %}
 {% from "baseframe/forms.html" import renderform %}
-{% block title %}{{ campaign.title }}{% endblock %}
+{% block title %}{% trans %}Sending:{% endtrans %} {{ campaign.title }}{% endblock %}
 
-{# {% block listpane %}
+{% block listpane %}
   {{ sidebar(campaign, campaign.recipients, 's') }}
-{% endblock %} #}
+{% endblock %}
 
 {% block contentpane %}
-  {{ renderform(form, 'settings', "Next", multipart=True, style='vert') }}
+  {{ renderform(form, 'send', "Send", style='vert') }}
 {% endblock %}

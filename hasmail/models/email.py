@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import re
-from flask import url_for
-from sqlalchemy.orm import defer
+from flask import url_for, Markup
+from sqlalchemy.orm import defer, deferred
+import pystache
+import short_url
 from coaster.utils import buid, md5sum, newsecret, LabeledEnum
-from . import db, BaseNameMixin, BaseScopedIdMixin, MarkdownColumn, JsonDict
+from coaster.gfm import markdown
+from . import db, TimestampMixin, BaseMixin, BaseNameMixin, BaseScopedIdMixin, MarkdownColumn, JsonDict
 from .user import User
 from .. import __
 
-__all__ = ['CAMPAIGN_STATUS', 'EmailCampaign', 'EmailDraft', 'EmailRecipient']
+__all__ = ['CAMPAIGN_STATUS', 'EmailCampaign', 'EmailDraft', 'EmailRecipient', 'EmailLink', 'EmailLinkRecipient']
 
 EMAIL_RE = re.compile(r'^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$', re.I)
 
@@ -24,7 +27,7 @@ class EmailCampaign(BaseNameMixin, db.Model):
     __tablename__ = 'email_campaign'
 
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship(User, backref='campaigns')
+    user = db.relationship(User, backref=db.backref('campaigns', order_by=db.desc('email_campaign.updated_at')))
     status = db.Column(db.Integer, nullable=False, default=CAMPAIGN_STATUS.DRAFT)
     _headers = db.Column(db.UnicodeText, nullable=False, default=u'')
     trackopens = db.Column(db.Boolean, nullable=False, default=False)
@@ -56,6 +59,7 @@ class EmailCampaign(BaseNameMixin, db.Model):
                 'delete',
                 'send',
                 'new-recipient',
+                'report',
                 ])
         return perms
 
@@ -66,6 +70,10 @@ class EmailCampaign(BaseNameMixin, db.Model):
             return url_for('campaign_recipients', campaign=self.name)
         elif action == 'template':
             return url_for('campaign_template', campaign=self.name)
+        elif action == 'send':
+            return url_for('campaign_send', campaign=self.name)
+        elif action == 'report':
+            return url_for('campaign_report', campaign=self.name)
 
     def draft(self):
         # TODO: Make this not load the full content of drafts.
@@ -83,7 +91,7 @@ class EmailDraft(BaseScopedIdMixin, db.Model):
     revision_id = db.synonym('url_id')
 
     subject = db.Column(db.Unicode(250), nullable=False, default=u"")
-    template = MarkdownColumn('template', nullable=False, default=u"", deferred=True)
+    template = deferred(db.Column(db.UnicodeText, nullable=False, default=u""))
 
     __table_args__ = (db.UniqueConstraint('campaign_id', 'url_id'),)
 
@@ -106,6 +114,10 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     # Support email open tracking
     opentoken = db.Column(db.Unicode(44), nullable=False, default=newsecret, unique=True)
     opened = db.Column(db.Boolean, nullable=False, default=False)
+    opened_ipaddr = db.Column(db.Unicode(45), nullable=True)
+    opened_first_at = db.Column(db.DateTime, nullable=True)
+    opened_last_at = db.Column(db.DateTime, nullable=True)
+    opened_count = db.Column(db.Integer, nullable=False, default=0)
 
     # Support RSVP if the email requires it
     rsvptoken = db.Column(db.Unicode(44), nullable=False, default=newsecret, unique=True)
@@ -114,7 +126,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     # Customised template for this recipient
     # TODO: Discover template for linked groups (only one recipient will have a custom template that is used for all)
     subject = db.Column(db.Unicode(250), nullable=True)
-    template = MarkdownColumn('template', nullable=True, deferred=True)
+    template = deferred(db.Column(db.UnicodeText, nullable=True))
 
     # Rendered version of user's template, for archival
     rendered = MarkdownColumn('rendered', nullable=True, deferred=True)
@@ -219,11 +231,37 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
             ('lastname', self.lastname),
             ] + self.data.items() if self.data else [])
 
-    def url_for(self, action='view'):
+    def get_rendered(self, draft):
+        if self.draft:
+            return pystache.render(self.template, self.template_data())
+        else:
+            return pystache.render(draft.template, self.template_data())
+
+    def get_preview(self, draft):
+        return markdown(self.get_rendered(draft))
+
+    def url_for(self, action='view', _external=False):
         if action == 'view' or action == 'template':
-            return url_for('recipient_view', campaign=self.campaign.name, recipient=self.url_id)
+            return url_for('recipient_view', campaign=self.campaign.name, recipient=self.url_id, _external=_external)
         elif action == 'edit':
-            return url_for('recipient_edit', campaign=self.campaign.name, recipient=self.url_id)
+            return url_for('recipient_edit', campaign=self.campaign.name, recipient=self.url_id, _external=_external)
+        elif action == 'delete':
+            return url_for('recipient_delete', campaign=self.campaign.name, recipient=self.url_id, _external=_external)
+        elif action == 'trackopen':
+            return url_for('track_open_gif', opentoken=self.opentoken, _external=True)
+        elif action == 'report':
+            return url_for('recipient_report', campaign=self.campaign.name, recipient=self.url_id, _external=_external)
+
+    def openmarkup(self):
+        if self.campaign.trackopens:
+            return Markup(
+                u'\n<img src="{url}" width="1" height="1" alt="" border="0" style="height:1px !important;'
+                u'width:1px !important;border-width:0 !important;margin-top:0 !important;'
+                u'margin-bottom:0 !important;margin-right:0 !important;margin-left:0 !important;'
+                u'padding-top:0 !important;padding-bottom:0 !important;padding-right:0 !important;'
+                u'padding-left:0 !important;"/>'.format(url=self.url_for('trackopen')))
+        else:
+            return Markup(u'')
 
     @classmethod
     def custom_draft_in(cls, campaign):
@@ -235,3 +273,34 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
                 defer('opentoken'), defer('opened'), defer('rsvptoken'), defer('rsvp'),
                 defer('linkgroup')
             ).all()
+
+
+class EmailLink(BaseMixin, db.Model):
+    __tablename__ = 'email_link'
+
+    name = db.Column(db.String(10), nullable=True, unique=True)
+    url = db.Column(db.String(2083), nullable=False, index=True)
+
+    @classmethod
+    def shorten(cls, url):
+        link = cls.query.filter_by(url=url).first()
+        if link:
+            return link
+        link = cls(url=url)
+        db.session.add(link)
+        db.session.flush()
+        link.name = short_url.encode_url(link.id)
+        return link
+
+    @classmethod
+    def get(cls, name):
+        return cls.query.filter_by(name=name).one_or_none()
+
+
+class EmailLinkRecipient(TimestampMixin, db.Model):
+    __tablename__ = 'email_link_recipient'
+
+    link_id = db.Column(None, db.ForeignKey('email_link.id'), primary_key=True)
+    link = db.relationship(EmailLink, backref=db.backref('link_recipients', cascade='all, delete-orphan'))
+    recipient_id = db.Column(None, db.ForeignKey('email_recipient.id'), primary_key=True)
+    recipient = db.relationship(EmailRecipient, backref=db.backref('recipient_links', cascade='all, delete-orphan'))

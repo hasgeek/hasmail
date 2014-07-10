@@ -11,6 +11,8 @@ GOOGLE_SITE_VERIFICATION = ''
 TYPEKIT_CODE = ''
 #: Database backend
 SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
+#: Asset server
+ASSET_SERVER = 'https://static.hasgeek.co.in/'
 #: Secret key
 SECRET_KEY = 'make this something random'
 #: Cache type

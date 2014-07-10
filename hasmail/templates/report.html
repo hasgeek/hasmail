@@ -1,0 +1,14 @@
+{% extends "twopane.html" %}
+{% from "macros.html" import report_sidebar %}
+{% from "baseframe/forms.html" import renderform %}
+{% block title %}{% trans %}Report:{% endtrans %} {{ campaign.title }}{% endblock %}
+
+{% block listpane %}
+  {{ report_sidebar(campaign, campaign.recipients, 't') }}
+{% endblock %}
+
+{% block contentpane %}
+  <p>
+    There is no report yet
+  </p>
+{% endblock %}

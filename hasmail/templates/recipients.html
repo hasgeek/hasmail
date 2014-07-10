@@ -18,20 +18,20 @@
           {%- for header in campaign.headers %}
             <th>{{ header }}</th>
           {% endfor %}
-          <th><i class="icon-trash"></i></th>
+          <th><i class="fa fa-trash-o"></i></th>
         </tr>
       </thead>
       <tbody>
         {%- for r in campaign.recipients %}{% with editurl = r.url_for('edit') %}
         <tr>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="fullname">{{ r.fullname }}</a></td>
-          <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="email" data-value="{{ r.email }}">{{ r.email }} {%- if not r.is_email_valid() %} <i class="icon-warning-sign"></i>{% endif %}</a></td>
+          <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="email" data-value="{{ r.email }}">{{ r.email }} {%- if not r.is_email_valid() %} <i class="fa fa-warning"></i>{% endif %}</a></td>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="firstname">{{ r.firstname }}</a></td>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="lastname">{{ r.lastname }}</a></td>
           {%- for header in campaign.headers %}
             <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="{{ header }}">{{ r.data.get(header) }}</a></td>
           {%- endfor %}
-          <td><a data-pk="{{ r.url_id }}" href="#" class="hidden-until-hover"><i class="icon-trash"></i></a></td>
+          <td><a data-pk="{{ r.url_id }}" href="{{ r.url_for('delete') }}" class="hidden-until-hover"><i class="fa fa-trash-o"></i></a></td>
         </tr>
         {%- endwith %}{% endfor %}
       </tbody>

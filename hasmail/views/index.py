@@ -2,7 +2,7 @@
 
 from flask import g, render_template, redirect
 from .. import _, app, lastuser
-from ..models import db, EmailCampaign
+from ..models import db, EmailCampaign, CAMPAIGN_STATUS
 from ..forms import BlankForm
 
 @app.route('/')
@@ -20,7 +20,7 @@ def dashboard():
         db.session.add(campaign)
         db.session.commit()
         return redirect(campaign.url_for(), 303)
-    return render_template('dashboard.html', campaigns=g.user.campaigns, form=form, wstep=1)
+    return render_template('dashboard.html', campaigns=g.user.campaigns, form=form, wstep=1, STATUS=CAMPAIGN_STATUS)
 
 
 @app.route('/wip')
