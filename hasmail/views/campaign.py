@@ -125,6 +125,10 @@ def campaign_report(campaign):
 
 @job('hasmail')
 def campaign_send_do(campaign_id, user_id, email):
+    ctx = None
+    if not request:
+        ctx = app.test_request_context()
+        ctx.push()
     campaign = EmailCampaign.query.get(campaign_id)
     campaign.status = CAMPAIGN_STATUS.SENDING
     draft = campaign.draft()
@@ -145,7 +149,7 @@ def campaign_send_do(campaign_id, user_id, email):
         msg = Message(
             subject=(recipient.subject if recipient.subject is not None else draft.subject) if recipient.draft else draft.subject,
             sender=(user.fullname, email),
-            recipients=[recipient.email],
+            recipients=['"{fullname}" <{email}>'.format(fullname=recipient.fullname.replace('"', "'"), email=recipient.email)],
             body=recipient.rendered.text,
             html=recipient.rendered.html + recipient.openmarkup(),
             )
@@ -156,3 +160,6 @@ def campaign_send_do(campaign_id, user_id, email):
     # Done!
     campaign.status = CAMPAIGN_STATUS.SENT
     db.session.commit()
+
+    if ctx:
+        ctx.pop()

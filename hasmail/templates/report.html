@@ -4,7 +4,7 @@
 {% block title %}{% trans %}Report:{% endtrans %} {{ campaign.title }}{% endblock %}
 
 {% block listpane %}
-  {{ report_sidebar(campaign, campaign.recipients, 't') }}
+  {{ report_sidebar(campaign, campaign.recipients, recipient or 't') }}
 {% endblock %}
 
 {% block contentpane %}
