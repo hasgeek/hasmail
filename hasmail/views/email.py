@@ -138,13 +138,15 @@ def recipient_edit(campaign, recipient):
         if field == 'email':
             recipient.email = value
         elif field == 'fullname':
-            recipient.fullname = value
+            recipient.fullname = value or None
         elif field == 'firstname':
-            recipient.firstname = value
+            recipient.firstname = value or None
         elif field == 'lastname':
-            recipient.lastname = value
+            recipient.lastname = value or None
+        elif field == 'nickname':
+            recipient.nickname = value or None
         else:
-            recipient.data[field] = value
+            recipient.data[field] = value or None
         db.session.commit()
         return _("Saved"), 200
     else:

@@ -23,7 +23,7 @@ def import_from_csv(campaign, reader):
     for row in reader:
         row = dict([(make_name(key), value) for key, value in row.items()])
 
-        fullname = firstname = lastname = email = None
+        fullname = firstname = lastname = email = nickname = None
 
         # The first column in each of the following is significant as that is the field name
         # in the EmailRecipient model and is the name passed to the email template
@@ -57,8 +57,15 @@ def import_from_csv(campaign, reader):
                 del row[field]
                 break
 
+        for field in ['nickname', 'nick', 'nick-name']:
+            if field in row and row[field]:
+                nickname = row[field]
+                del row[field]
+                break
+
         if email.lower() not in existing:
-            recipient = EmailRecipient(campaign=campaign, email=email, fullname=fullname, firstname=firstname, lastname=lastname)
+            recipient = EmailRecipient(campaign=campaign, email=email,
+                fullname=fullname, firstname=firstname, lastname=lastname, nickname=nickname)
             recipient.data = {}
             for key in row:
                 recipient.data[key] = row[key]

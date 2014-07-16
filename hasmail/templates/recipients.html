@@ -13,6 +13,7 @@
         <tr>
           <th>fullname</th>
           <th>email</th>
+          <th>nickname</th>
           <th>firstname</th>
           <th>lastname</th>
           {%- for header in campaign.headers %}
@@ -26,6 +27,7 @@
         <tr>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="fullname">{{ r.fullname }}</a></td>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="email" data-value="{{ r.email }}">{{ r.email }} {%- if not r.is_email_valid() %} <i class="fa fa-warning"></i>{% endif %}</a></td>
+          <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="nickname">{{ r.nickname }}</a></td>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="firstname">{{ r.firstname }}</a></td>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="lastname">{{ r.lastname }}</a></td>
           {%- for header in campaign.headers %}

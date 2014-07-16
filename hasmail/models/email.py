@@ -128,6 +128,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     _fullname = db.Column('fullname', db.Unicode(80), nullable=True)
     _firstname = db.Column('firstname', db.Unicode(80), nullable=True)
     _lastname = db.Column('lastname', db.Unicode(80), nullable=True)
+    _nickname = db.Column('nickname', db.Unicode(80), nullable=True)
 
     _email = db.Column('email', db.Unicode(80), nullable=False, index=True)
     md5sum = db.Column(db.String(32), nullable=False, index=True)
@@ -220,6 +221,14 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
         self._lastname = value
 
     @property
+    def nickname(self):
+        return self._nickname or self.firstname
+
+    @nickname.setter
+    def nickname(self, value):
+        self._nickname = value
+
+    @property
     def email(self):
         return self._email
 
@@ -231,6 +240,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     fullname = db.synonym('_fullname', descriptor=fullname)
     firstname = db.synonym('_firstname', descriptor=firstname)
     lastname = db.synonym('_lastname', descriptor=lastname)
+    nickname = db.synonym('_nickname', descriptor=nickname)
     email = db.synonym('_email', descriptor=email)
 
     def is_email_valid(self):
@@ -256,6 +266,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
             ('email', self.email),
             ('firstname', self.firstname),
             ('lastname', self.lastname),
+            ('nickname', self.nickname),
             ('RSVP_Y', self.url_for('rsvp', status='Y')),
             ('RSVP_N', self.url_for('rsvp', status='N')),
             ('RSVP_M', self.url_for('rsvp', status='M')),
@@ -303,7 +314,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
                 defer('created_at'), defer('updated_at'), defer('email'), defer('md5sum'),
                 defer('fullname'), defer('firstname'), defer('lastname'), defer('data'),
                 defer('opentoken'), defer('opened'), defer('rsvptoken'), defer('rsvp'),
-                defer('linkgroup')
+                defer('linkgroup'), defer('nickname')
             ).all()
 
 
