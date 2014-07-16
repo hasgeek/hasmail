@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from flask import request, redirect
-from coaster.views import load_model, load_models
+from flask import request, redirect, render_template, abort
+from coaster.views import load_models
 from .. import app
 from ..models import db, EmailRecipient, EmailLink, EmailLinkRecipient
 
@@ -25,12 +25,14 @@ def track_open_inner(recipient, isopen=True):
 
 
 @app.route('/open/<opentoken>.gif')
-@load_model(EmailRecipient, {'opentoken': 'opentoken'}, 'recipient')
-def track_open_gif(recipient):
-    track_open_inner(recipient, isopen=True)
-    db.session.commit()
-
-    return gif1x1, 200, {'Content-Type': 'image/gif'}
+def track_open_gif(opentoken):
+    recipient = EmailRecipient.query.filter_by(opentoken=opentoken).first()
+    if recipient is not None:
+        track_open_inner(recipient, isopen=True)
+        db.session.commit()
+        return gif1x1, 200, {'Content-Type': 'image/gif'}
+    else:
+        return gif1x1, 404, {'Content-Type': 'image/gif'}
 
 
 @app.route('/go/<name>/<opentoken>')
@@ -45,3 +47,13 @@ def track_open_link(link, recipient):
         db.session.add(link_recipient)
     db.session.commit()
     return redirect(link.url)
+
+
+@app.route('/rsvp/<rsvptoken>/<status>')
+def rsvp(rsvptoken, status):
+    recipient = EmailRecipient.query.filter_by(rsvptoken=rsvptoken).first_or_404()
+    status = status.upper()
+    if status in ('Y', 'N', 'M'):
+        recipient.rsvp = status
+        db.session.commit()
+    return render_template('rsvp.html', recipient=recipient, status=status)

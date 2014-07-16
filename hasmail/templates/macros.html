@@ -1,10 +1,17 @@
 {% macro sidebar(campaign, recipients, active=none) %}
   <div class="list-group list-group-discreet {#- nav nav-pills nav-stacked nav-pills-filling nav-point-right -#}">
-    <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('template') }}">{% trans %}Write email{% endtrans %}</a>
+    <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('template') }}"><i class="fa fa-fw fa-pencil"></i>
+      {% trans %}Write email{% endtrans %}</a>
     {%- if recipients %}{% for r in recipients %}
-      <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for() }}">{{ r.fullname }}
-        {%- if r.draft %} <i class="fa fa-pencil"></i> {%- endif -%}
-        {%- if r.rendered.text %} <i class="fa fa-envelope-o"></i> {%- endif -%}
+      <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for() }}">
+        {%- if r.rendered_text -%}
+          <i class="fa fa-fw fa-send"></i>
+        {%- elif r.draft -%}
+          <i class="fa fa-fw fa-envelope"></i>
+        {%- else %}
+          <i class="fa fa-fw fa-envelope-o"></i>
+        {%- endif %}
+        {{ r.fullname }}
       </a>
     {% endfor %}{% endif %}
   </div>
@@ -12,12 +19,24 @@
 
 {% macro report_sidebar(campaign, recipients, active=none) %}
   <div class="list-group list-group-discreet {#- nav nav-pills nav-stacked nav-pills-filling nav-point-right -#}">
-    <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('report') }}">{% trans %}View report{% endtrans %}</a>
+    <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('report') }}"><i class="fa fa-fw fa-bar-chart-o"></i>
+      {% trans %}View report{% endtrans %}</a>
     {%- if recipients %}{% for r in recipients %}
-      <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for('report') }}">{{ r.fullname }}
-        {%- if r.draft %}  <i class="fa fa-pencil"></i>  {%- endif -%}
-        {%- if r.opened %} <i class="fa fa-eye"></i>
-        {%- elif r.rendered.text %} <i class="fa fa-envelope-o"></i> {%- endif -%}
+      <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for('report') }}">
+        {%- if r.rsvp == 'Y' -%}
+          <i class="fa fa-fw fa-star"></i>
+        {%- elif r.rsvp == 'N' -%}
+          <i class="fa fa-fw fa-star-o"></i>
+        {%- elif r.rsvp == 'M' -%}
+          <i class="fa fa-fw fa-star-half-o"></i>
+        {%- elif r.opened -%}
+          <i class="fa fa-fw fa-eye"></i>
+        {%- elif r.rendered_text -%}
+          <i class="fa fa-fw fa-send"></i>
+        {%- else %}
+          <i class="fa fa-fw fa-envelope-o"></i>
+        {%- endif %}
+        {{ r.fullname }}
       </a>
     {% endfor %}{% endif %}
   </div>

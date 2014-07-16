@@ -5,6 +5,7 @@ Flask-RQ
 unicodecsv
 diff-match-patch
 short_url
+premailer
 https://github.com/hasgeek/coaster/archive/master.zip
 https://github.com/hasgeek/baseframe/archive/master.zip
 https://github.com/hasgeek/flask-lastuser/archive/master.zip

@@ -2,7 +2,6 @@
 
 from flask import render_template, request, jsonify
 from coaster.views import load_model, load_models
-from coaster.gfm import markdown
 from baseframe.forms import render_delete_sqla
 
 from .. import app, lastuser, _
@@ -39,7 +38,7 @@ def campaign_template(campaign, kwargs=None):
 
         return jsonify({
             'template': draft.template,
-            'preview': markdown(draft.template),
+            'preview': draft.get_preview(),
             'subject': draft.subject,
             'revision_id': draft.revision_id
             })
@@ -54,7 +53,7 @@ def campaign_template(campaign, kwargs=None):
     permission='edit')
 def recipient_view(campaign, recipient):
     draft = campaign.draft()
-    already_sent = bool(recipient.rendered.text)
+    already_sent = bool(recipient.rendered_text)
 
     if recipient.draft:
         # This user has a custom template, use it

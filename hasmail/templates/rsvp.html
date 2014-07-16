@@ -1,0 +1,41 @@
+{% extends "publicview.html" %}
+{% block titletags %}<title>{% block title %}RSVP received{% endblock %}</title>{% endblock %}
+{%- block content %}
+  {%- if status == 'Y' %}
+    <h1>Roger that!</h1>
+    <p>
+      We have your confirmation
+    </p>
+  {%- elif status == 'N' %}
+    <h1>Awww!</h1>
+    <p>
+      Sorry to hear you can’t make it
+    </p>
+  {%- elif status == 'M' %}
+    <h1>Mm’kay</h1>
+    <p>
+      When you know better, could you update your status?
+    </p>
+  {%- else %}
+    <h1>Uh oh!</h1>
+    <p>
+      Who are you and how did you get here?
+    </p>
+  {% endif %}
+{% endblock %}
+
+{% block footer %}
+  {%- if status == 'Y' %}
+    Change status?
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='N') }}">Not coming</a>
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='M') }}">Not sure</a>
+  {%- elif status == 'N' %}
+    Change status?
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='Y') }}">I’m coming</a>
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='M') }}">Not sure</a>
+  {%- elif status == 'M' %}
+    Change status?
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='Y') }}">I’m coming</a>
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='N') }}">Not coming</a>
+  {% endif %}
+{% endblock %}

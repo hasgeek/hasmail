@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import unicodecsv
-from flask import g, url_for, request, render_template, flash, redirect
+from flask import g, url_for, request, render_template, flash, redirect, Markup
 from flask.ext.mail import Message
 from flask.ext.rq import job
 from coaster.utils import make_name
@@ -120,7 +120,10 @@ def campaign_send(campaign):
 @lastuser.requires_login
 @load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='report')
 def campaign_report(campaign):
-    return render_template('report.html', campaign=campaign, recipient=None, wstep=6)
+    recipients = campaign.recipients
+    recipients.sort(key=lambda r:
+        ((r.rsvp == u'Y' and 1) or (r.rsvp == u'M' and 2) or (r.rsvp == u'N' and 3) or (r.opened and 4) or 5, r.fullname))
+    return render_template('report.html', campaign=campaign, recipients=recipients, recipient=None, wstep=6)
 
 
 @job('hasmail')
@@ -138,20 +141,21 @@ def campaign_send_do(campaign_id, user_id, email):
     # 1. Wrap links if click tracking is enabled, in the master template
     # TODO
     # 2. Update all drafts
-    send_to = [recipient for recipient in campaign.recipients if not recipient.rendered.text]
+    send_to = [recipient for recipient in campaign.recipients if not recipient.rendered_text]
     for recipient in send_to:
         update_recipient(recipient)
         # 3. Wrap links in custom templates
         # TODO
         # 4. Generate rendering per recipient and mark recipient as sent
-        recipient.rendered = recipient.get_rendered(draft)
+        recipient.rendered_text = recipient.get_rendered(draft)
+        recipient.rendered_html = recipient.get_preview(draft)
         # 5. Send message
         msg = Message(
             subject=(recipient.subject if recipient.subject is not None else draft.subject) if recipient.draft else draft.subject,
             sender=(user.fullname, email),
             recipients=['"{fullname}" <{email}>'.format(fullname=recipient.fullname.replace('"', "'"), email=recipient.email)],
-            body=recipient.rendered.text,
-            html=recipient.rendered.html + recipient.openmarkup(),
+            body=recipient.rendered_text,
+            html=Markup(recipient.rendered_html) + recipient.openmarkup(),
             )
         mail.send(msg)
         # 6. Commit after each recipient

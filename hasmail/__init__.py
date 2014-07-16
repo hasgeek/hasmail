@@ -38,7 +38,7 @@ def init_for(env):
     db.app = app
     RQ(app)  # Pick up RQ configuration from the app
     baseframe.init_app(app, requires=['hasmail'],
-        ext_requires=['bootstrap3-editable', 'codemirror-markdown', 'fontawesome', 'baseframe-bs3'])
+        ext_requires=['bootstrap3-editable', 'codemirror-markdown', 'codemirror-css', 'fontawesome', 'baseframe-bs3'])
     mail.init_app(app)
     lastuser.init_app(app)
     lastuser.init_usermanager(UserManager(db, models.User))
