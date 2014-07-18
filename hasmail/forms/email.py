@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from cssselect.parser import parse as parse_css, SelectorError
 import wtforms
 from baseframe.forms import Form, StylesheetField
-from .. import __
+from .. import _, __
 
 __all__ = ['CampaignSettingsForm', 'CampaignSendForm', 'TemplateForm']
 
@@ -25,6 +26,12 @@ class CampaignSettingsForm(Form):
     # trackclicks = wtforms.BooleanField(__(u"Track clicks"), default=False,
     #     description=__(u"All links in your email will be wrapped and clicks will be tracked "
     #         u"so you know which recipient opened which links"))
+
+    def validate_stylesheet(self, field):
+        try:
+            parse_css(field.data)
+        except SelectorError:
+            raise wtforms.validators.StopValidation(_("This stylesheet has syntax errors"))
 
 
 class CampaignSendForm(Form):
