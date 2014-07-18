@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from StringIO import StringIO
 import unicodecsv
 from flask import g, url_for, request, render_template, flash, redirect, Markup
 from flask.ext.mail import Message
@@ -21,7 +22,7 @@ def import_from_csv(campaign, reader):
     headers = set(campaign.headers)
 
     for row in reader:
-        row = dict([(make_name(key), value) for key, value in row.items()])
+        row = dict([(make_name(key), value.strip()) for key, value in row.items()])
 
         fullname = firstname = lastname = email = nickname = None
 
@@ -29,7 +30,7 @@ def import_from_csv(campaign, reader):
         # in the EmailRecipient model and is the name passed to the email template
 
         # Now look for email (mandatory), first name, last name and full name
-        for field in ['email', 'e-mail', 'email-address', 'e-mail-address']:
+        for field in ['email', 'e-mail', 'email-id', 'e-mail-id', 'email-address', 'e-mail-address']:
             if field in row and row[field]:
                 email = row[field]
                 del row[field]
@@ -64,11 +65,11 @@ def import_from_csv(campaign, reader):
                 break
 
         if email.lower() not in existing:
-            recipient = EmailRecipient(campaign=campaign, email=email,
+            recipient = EmailRecipient(campaign=campaign, email=email.lower(),
                 fullname=fullname, firstname=firstname, lastname=lastname, nickname=nickname)
             recipient.data = {}
             for key in row:
-                recipient.data[key] = row[key]
+                recipient.data[key] = row[key].strip()
                 headers.add(key)
             db.session.add(recipient)
             existing.add(recipient.email.lower())
@@ -84,7 +85,8 @@ def campaign_view(campaign):
     if form.validate_on_submit():
         form.populate_obj(campaign)
         if 'importfile' in request.files:
-            reader = unicodecsv.DictReader(request.files['importfile'])
+            data = StringIO(request.files['importfile'].getvalue().replace('\r\n', '\n').replace('\r', '\n'))
+            reader = unicodecsv.DictReader(data)
             import_from_csv(campaign, reader)
         db.session.commit()
         return render_redirect(campaign.url_for('recipients'), code=303)
