@@ -14,6 +14,7 @@ from .. import __
 
 __all__ = ['CAMPAIGN_STATUS', 'EmailCampaign', 'EmailDraft', 'EmailRecipient', 'EmailLink', 'EmailLinkRecipient']
 
+NAMESPLIT_RE = re.compile(r'[\W\.]+')
 EMAIL_RE = re.compile(r'^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$', re.I)
 
 EMAIL_TAGS = dict(GFM_TAGS)
@@ -23,10 +24,10 @@ for key in EMAIL_TAGS:
 del key
 
 
-def render_preview(campaign, template):
+def render_preview(campaign, text):
     return email_transform(
-        Markup('<style type="text/css">%s</style>\n' % campaign.stylesheet)
-            + markdown(template, html=True, valid_tags=EMAIL_TAGS),
+        Markup((u'<style type="text/css">%s</style>\n' % campaign.stylesheet) if campaign.stylesheet else u'')
+            + markdown(text, html=True, valid_tags=EMAIL_TAGS),
         base_url=request.url_root)
 
 
@@ -199,7 +200,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
         if self._firstname:
             return self._firstname
         elif self._fullname:
-            return self._fullname.split(u' ')[0]
+            return NAMESPLIT_RE.split(self._fullname.split)[0]
         else:
             return None
 
@@ -212,7 +213,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
         if self._lastname:
             return self._lastname
         elif self._fullname:
-            return self._fullname.split(u' ')[-1]
+            return NAMESPLIT_RE.split(self._fullname.split)[-1]
         else:
             return None
 
