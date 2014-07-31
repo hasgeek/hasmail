@@ -16,7 +16,8 @@ class CampaignSettingsForm(Form):
         description=__(u"A CSV file containing names and email addresses would be most excellent"))
 
     stylesheet = StylesheetField(__(u"CSS Stylesheet"),
-        description=__(u"These styles will be applied to your email before it is sent"))
+        description=__(u"These styles will be applied to your email before it is sent"),
+        validators=[wtforms.validators.Optional()])
 
     trackopens = wtforms.BooleanField(__(u"Track opens"), default=False,
         description=__(u"This will include a tiny, invisible image in your email. "
@@ -28,10 +29,11 @@ class CampaignSettingsForm(Form):
     #         u"so you know which recipient opened which links"))
 
     def validate_stylesheet(self, field):
-        try:
-            parse_css(field.data)
-        except SelectorError:
-            raise wtforms.validators.StopValidation(_("This stylesheet has syntax errors"))
+        if field.data:
+            try:
+                parse_css(field.data)
+            except SelectorError:
+                raise wtforms.validators.StopValidation(_("This stylesheet has syntax errors"))
 
 
 class CampaignSendForm(Form):
