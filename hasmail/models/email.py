@@ -200,7 +200,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
         if self._firstname:
             return self._firstname
         elif self._fullname:
-            return NAMESPLIT_RE.split(self._fullname.split)[0]
+            return NAMESPLIT_RE.split(self._fullname)[0]
         else:
             return None
 
@@ -213,7 +213,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
         if self._lastname:
             return self._lastname
         elif self._fullname:
-            return NAMESPLIT_RE.split(self._fullname.split)[-1]
+            return NAMESPLIT_RE.split(self._fullname)[-1]
         else:
             return None
 
