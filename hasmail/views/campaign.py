@@ -19,7 +19,7 @@ def import_from_csv(campaign, reader):
     existing = set([r.email.lower() for r in
         db.session.query(EmailRecipient.email).filter(EmailRecipient.campaign == campaign).all()])
 
-    headers = set(campaign.headers)
+    fields = set(campaign.fields)
 
     for row in reader:
         row = dict([(make_name(key), value.strip()) for key, value in row.items()])
@@ -70,11 +70,11 @@ def import_from_csv(campaign, reader):
             recipient.data = {}
             for key in row:
                 recipient.data[key] = row[key].strip()
-                headers.add(key)
+                fields.add(key)
             db.session.add(recipient)
             existing.add(recipient.email.lower())
 
-    campaign.headers = headers
+    campaign.fields = fields
 
 
 @app.route('/mail/<campaign>', methods=('GET', 'POST'))
@@ -165,6 +165,8 @@ def campaign_send_do(campaign_id, user_id, email):
             recipients=['"{fullname}" <{email}>'.format(fullname=recipient.fullname.replace('"', "'"), email=recipient.email)],
             body=recipient.rendered_text,
             html=Markup(recipient.rendered_html) + recipient.openmarkup(),
+            cc=campaign.cc.split('\n'),
+            bcc=campaign.bcc.split('\n')
             )
         mail.send(msg)
         # 6. Commit after each recipient

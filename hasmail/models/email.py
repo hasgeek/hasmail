@@ -44,26 +44,52 @@ class EmailCampaign(BaseNameMixin, db.Model):
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship(User, backref=db.backref('campaigns', order_by=db.desc('email_campaign.updated_at')))
     status = db.Column(db.Integer, nullable=False, default=CAMPAIGN_STATUS.DRAFT)
-    _headers = db.Column(db.UnicodeText, nullable=False, default=u'')
+    _fields = db.Column('fields', db.UnicodeText, nullable=False, default=u'')
     trackopens = db.Column(db.Boolean, nullable=False, default=False)
     trackclicks = db.Column(db.Boolean, nullable=False, default=False)
     stylesheet = db.Column(db.UnicodeText, nullable=False, default=u'')
+    _cc = db.Column('cc', db.UnicodeText, nullable=True)
+    _bcc = db.Column('bcc', db.UnicodeText, nullable=True)
 
     def __repr__(self):
         return '<EmailCampaign "%s" (%s)>' % (self.title, CAMPAIGN_STATUS.get(self.status))
 
     @property
-    def headers(self):
-        hlist = self._headers.split(u' ')
-        if u'' in hlist:
-            hlist.remove(u'')
-        return hlist
+    def fields(self):
+        flist = self._fields.split(u' ')
+        while u'' in flist:
+            flist.remove(u'')
+        return flist
 
-    @headers.setter
-    def headers(self, value):
-        self._headers = u' '.join(sorted(set(value)))
+    @fields.setter
+    def fields(self, value):
+        self._fields = u' '.join(sorted(set(value)))
 
-    headers = db.synonym('_headers', descriptor=headers)
+    fields = db.synonym('_fields', descriptor=fields)
+
+    @property
+    def cc(self):
+        return self._cc
+
+    @cc.setter
+    def cc(self, value):
+        if isinstance(value, basestring):
+            value = [l.strip() for l in value.replace(u'\r\n', u'\n').replace(u'\r', u'\n').split(u'\n') if l]
+        self._cc = u'\n'.join(sorted(set(value)))
+
+    cc = db.synonym('_cc', descriptor=cc)
+
+    @property
+    def bcc(self):
+        return self._bcc
+
+    @bcc.setter
+    def bcc(self, value):
+        if isinstance(value, basestring):
+            value = [l.strip() for l in value.replace(u'\r\n', u'\n').replace(u'\r', u'\n').split(u'\n') if l]
+        self._bcc = u'\n'.join(sorted(set(value)))
+
+    bcc = db.synonym('_bcc', descriptor=bcc)
 
     def __init__(self, **kwargs):
         super(EmailCampaign, self).__init__(**kwargs)

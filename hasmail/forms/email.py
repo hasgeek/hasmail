@@ -19,6 +19,14 @@ class CampaignSettingsForm(Form):
         description=__(u"These styles will be applied to your email before it is sent"),
         validators=[wtforms.validators.Optional()])
 
+    # TODO: Validate addresses
+    cc = wtforms.TextAreaField(__(u"CC"),
+        description=__(u"CCed recipients, one per line"))
+
+    # TODO: Validate addresses
+    bcc = wtforms.TextAreaField(__(u"BCC"),
+        description=__(u"BCCed recipients, one per line"))
+
     trackopens = wtforms.BooleanField(__(u"Track opens"), default=False,
         description=__(u"This will include a tiny, invisible image in your email. "
             u"Your recipient's email client may ask them if they want to view images. "

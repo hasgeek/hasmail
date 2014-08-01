@@ -16,8 +16,8 @@
           <th>nickname</th>
           <th>firstname</th>
           <th>lastname</th>
-          {%- for header in campaign.headers %}
-            <th>{{ header }}</th>
+          {%- for field in campaign.fields %}
+            <th>{{ field }}</th>
           {% endfor %}
           <th><i class="fa fa-trash-o"></i></th>
         </tr>
@@ -30,8 +30,8 @@
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="nickname">{{ r.nickname }}</a></td>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="firstname">{{ r.firstname }}</a></td>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="lastname">{{ r.lastname }}</a></td>
-          {%- for header in campaign.headers %}
-            <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="{{ header }}">{{ r.data.get(header) }}</a></td>
+          {%- for field in campaign.fields %}
+            <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="{{ field }}">{{ r.data.get(field) }}</a></td>
           {%- endfor %}
           <td><a data-pk="{{ r.url_id }}" href="{{ r.url_for('delete') }}" class="hidden-until-hover"><i class="fa fa-trash-o"></i></a></td>
         </tr>
