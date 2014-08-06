@@ -25,9 +25,12 @@ del key
 
 
 def render_preview(campaign, text):
+    if campaign.stylesheet is not None and campaign.stylesheet.strip():
+        stylesheet = u'<style type="text/css">%s</style>\n' % campaign.stylesheet
+    else:
+        stylesheet = u''
     return email_transform(
-        Markup((u'<style type="text/css">%s</style>\n' % campaign.stylesheet) if campaign.stylesheet else u'')
-            + markdown(text, html=True, valid_tags=EMAIL_TAGS),
+        Markup(stylesheet) + markdown(text, html=True, valid_tags=EMAIL_TAGS),
         base_url=request.url_root)
 
 
