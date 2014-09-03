@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-from flask import url_for, Markup, request
+from flask import url_for, Markup, request, escape
 from sqlalchemy.orm import defer, deferred
 import pystache
 import short_url
@@ -26,7 +26,7 @@ del key
 
 def render_preview(campaign, text):
     if campaign.stylesheet is not None and campaign.stylesheet.strip():
-        stylesheet = u'<style type="text/css">%s</style>\n' % campaign.stylesheet
+        stylesheet = u'<style type="text/css">%s</style>\n' % escape(campaign.stylesheet)
     else:
         stylesheet = u''
     return email_transform(
