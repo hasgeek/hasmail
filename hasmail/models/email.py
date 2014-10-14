@@ -29,9 +29,13 @@ def render_preview(campaign, text):
         stylesheet = u'<style type="text/css">%s</style>\n' % escape(campaign.stylesheet)
     else:
         stylesheet = u''
-    return email_transform(
-        Markup(stylesheet) + markdown(text, html=True, valid_tags=EMAIL_TAGS),
-        base_url=request.url_root)
+    if text:
+        # email_transform uses LXML, which does not like empty strings
+        return email_transform(
+            Markup(stylesheet) + markdown(text, html=True, valid_tags=EMAIL_TAGS),
+            base_url=request.url_root)
+    else:
+        return u''
 
 
 class CAMPAIGN_STATUS(LabeledEnum):
@@ -62,7 +66,7 @@ class EmailCampaign(BaseNameMixin, db.Model):
         flist = self._fields.split(u' ')
         while u'' in flist:
             flist.remove(u'')
-        return flist
+        return tuple(flist)
 
     @fields.setter
     def fields(self, value):
