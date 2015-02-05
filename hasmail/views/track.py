@@ -30,9 +30,19 @@ def track_open_gif(opentoken):
     if recipient is not None:
         track_open_inner(recipient, isopen=True)
         db.session.commit()
-        return gif1x1, 200, {'Content-Type': 'image/gif'}
+        return gif1x1, 200, {
+            'Content-Type': 'image/gif',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+            }
     else:
-        return gif1x1, 404, {'Content-Type': 'image/gif'}
+        return gif1x1, 404, {
+            'Content-Type': 'image/gif',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+            }
 
 
 @app.route('/go/<name>/<opentoken>')
