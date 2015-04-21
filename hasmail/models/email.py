@@ -103,6 +103,11 @@ class EmailCampaign(BaseNameMixin, db.Model):
         if 'name' not in kwargs:  # Use random name unless one was provided
             self.name = buid()
 
+    def recipients_iter(self):
+        ids = [i.id for i in db.session.query(EmailRecipient.id).filter(EmailRecipient.campaign == self).order_by('id').all()]
+        for rid in ids:
+            yield EmailRecipient.query.get(rid)
+
     def permissions(self, user, inherited=None):
         perms = super(EmailCampaign, self).permissions(user, inherited)
         if user is not None and user == self.user:

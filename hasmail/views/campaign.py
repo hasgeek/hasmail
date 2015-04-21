@@ -161,7 +161,7 @@ def campaign_send_do(campaign_id, user_id, email):
     # 1. Wrap links if click tracking is enabled, in the master template
     # TODO
     # 2. Update all drafts
-    for recipient in campaign.recipients:
+    for recipient in campaign.recipients_iter():
         if not recipient.rendered_text:
             update_recipient(recipient)
             # 3. Wrap links in custom templates
@@ -173,13 +173,14 @@ def campaign_send_do(campaign_id, user_id, email):
             msg = Message(
                 subject=(recipient.subject if recipient.subject is not None else draft.subject) if recipient.draft else draft.subject,
                 sender=(user.fullname, email),
-                recipients=[u'"{fullname}" <{email}>'.format(fullname=recipient.fullname.replace('"', "'"), email=recipient.email)],
+                recipients=[u'"{fullname}" <{email}>'.format(fullname=(recipient.fullname or '').replace('"', "'"), email=recipient.email)],
                 body=recipient.rendered_text,
                 html=Markup(recipient.rendered_html) + recipient.openmarkup(),
                 cc=campaign.cc.split('\n'),
                 bcc=campaign.bcc.split('\n')
                 )
             mail.send(msg)
+            # print msg.recipients
             # 6. Commit after each recipient
             db.session.commit()
 
