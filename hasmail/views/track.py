@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from flask import request, redirect, render_template, abort
+from flask import request, redirect, render_template
 from coaster.views import load_models
 from .. import app
 from ..models import db, EmailRecipient, EmailLink, EmailLinkRecipient

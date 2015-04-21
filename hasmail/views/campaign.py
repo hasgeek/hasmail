@@ -85,7 +85,12 @@ def campaign_view(campaign):
     if form.validate_on_submit():
         form.populate_obj(campaign)
         if 'importfile' in request.files:
-            data = StringIO(request.files['importfile'].getvalue().replace('\r\n', '\n').replace('\r', '\n'))
+            fileob = request.files['importfile']
+            if hasattr(fileob, 'getvalue'):
+                data = fileob.getvalue()
+            else:
+                data = fileob.read()
+            data = StringIO(data.replace('\r\n', '\n').replace('\r', '\n'))
             reader = unicodecsv.DictReader(data)
             import_from_csv(campaign, reader)
         db.session.commit()
