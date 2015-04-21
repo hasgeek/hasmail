@@ -126,7 +126,8 @@ def campaign_send(campaign):
     if form.validate_on_submit():
         campaign.status = CAMPAIGN_STATUS.QUEUED
         db.session.commit()
-        campaign_send_do.delay(campaign.id, g.user.id, form.email.data)
+
+        campaign_send_do.delay(campaign.id, g.user.id, form.email.data, timeout=86400)
         flash(_(u"Your email has been queued for delivery"), 'success')
         return redirect(campaign.url_for('report'), code=303)
     return render_template('send.html', campaign=campaign, form=form, wstep=5)
@@ -146,7 +147,7 @@ def campaign_report(campaign):
     return render_template('report.html', campaign=campaign, recipients=recipients, recipient=None, count=count, wstep=6)
 
 
-@job('hasmail', timeout=86400)
+@job('hasmail')
 def campaign_send_do(campaign_id, user_id, email):
     ctx = None
     if not request:
