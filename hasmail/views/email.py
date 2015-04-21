@@ -20,7 +20,7 @@ def campaign_template(campaign, kwargs=None):
         # Make a new draft if we're editing an existing draft or there is no existing draft.
         # But don't make new drafts on page reload with no content change
         if not draft or (draft.revision_id == form.revision_id.data and (
-                draft.subject != form.subject.data or draft.template != form.template.data)):            
+                draft.subject != form.subject.data or draft.template != form.template.data)):
             draft = EmailDraft(campaign=campaign)
             db.session.add(draft)
         draft.subject = form.subject.data

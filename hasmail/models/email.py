@@ -115,17 +115,17 @@ class EmailCampaign(BaseNameMixin, db.Model):
                 ])
         return perms
 
-    def url_for(self, action='view'):
+    def url_for(self, action='view', **kwargs):
         if action == 'view' or action == 'edit':
-            return url_for('campaign_view', campaign=self.name)
+            return url_for('campaign_view', campaign=self.name, **kwargs)
         elif action == 'recipients':
-            return url_for('campaign_recipients', campaign=self.name)
+            return url_for('campaign_recipients', campaign=self.name, **kwargs)
         elif action == 'template':
-            return url_for('campaign_template', campaign=self.name)
+            return url_for('campaign_template', campaign=self.name, **kwargs)
         elif action == 'send':
-            return url_for('campaign_send', campaign=self.name)
+            return url_for('campaign_send', campaign=self.name, **kwargs)
         elif action == 'report':
-            return url_for('campaign_report', campaign=self.name)
+            return url_for('campaign_report', campaign=self.name, **kwargs)
 
     def draft(self):
         if self.drafts:
@@ -197,7 +197,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     # Recipients may be emailed as a group with all emails in the To field. Unique number to identify them
     linkgroup = db.Column(db.Integer, nullable=True)
 
-    campaign = db.relationship(EmailCampaign, backref=db.backref('recipients',
+    campaign = db.relationship(EmailCampaign, backref=db.backref('recipients', lazy='dynamic',
         cascade='all, delete-orphan', order_by=(draft_id, _fullname, _firstname, _lastname)))
     parent = db.synonym('campaign')
 
@@ -343,7 +343,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     @classmethod
     def custom_draft_in(cls, campaign):
         return cls.query.filter(cls.campaign == campaign,
-            cls.draft != None,
+            cls.draft != None,  # NOQA
             cls.__table__.c.template_text != None).options(
                 defer('created_at'), defer('updated_at'), defer('email'), defer('md5sum'),
                 defer('fullname'), defer('firstname'), defer('lastname'), defer('data'),
@@ -378,6 +378,6 @@ class EmailLinkRecipient(TimestampMixin, db.Model):
     __tablename__ = 'email_link_recipient'
 
     link_id = db.Column(None, db.ForeignKey('email_link.id'), primary_key=True)
-    link = db.relationship(EmailLink, backref=db.backref('link_recipients', cascade='all, delete-orphan'))
+    link = db.relationship(EmailLink, backref=db.backref('link_recipients', lazy='dynamic', cascade='all, delete-orphan'))
     recipient_id = db.Column(None, db.ForeignKey('email_recipient.id'), primary_key=True)
     recipient = db.relationship(EmailRecipient, backref=db.backref('recipient_links', cascade='all, delete-orphan'))

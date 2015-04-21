@@ -108,11 +108,13 @@ def campaign_delete(campaign):
         next=url_for('index'))
 
 
-@app.route('/mail/<campaign>/recipients')
+@app.route('/mail/<campaign>/recipients', defaults={'page': 1})
+@app.route('/mail/<campaign>/recipients/<int:page>')
 @lastuser.requires_login
-@load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit')
-def campaign_recipients(campaign):
-    return render_template('recipients.html', campaign=campaign, wstep=3)
+@load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit', kwargs=True)
+def campaign_recipients(campaign, kwargs):
+    page = kwargs.get('page', 1)
+    return render_template('recipients.html', campaign=campaign, page=page, wstep=3)
 
 
 @app.route('/mail/<campaign>/send', methods=('GET', 'POST'))
@@ -134,10 +136,14 @@ def campaign_send(campaign):
 @lastuser.requires_login
 @load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='report')
 def campaign_report(campaign):
-    recipients = campaign.recipients
-    recipients.sort(key=lambda r:
-        ((r.rsvp == u'Y' and 1) or (r.rsvp == u'M' and 2) or (r.rsvp == u'N' and 3) or (r.opened and 4) or 5, r.fullname))
-    return render_template('report.html', campaign=campaign, recipients=recipients, recipient=None, wstep=6)
+    count = campaign.recipients.count()
+    if count > 1000:
+        recipients = campaign.recipients
+    else:
+        recipients = campaign.recipients.all()
+        recipients.sort(key=lambda r:
+            ((r.rsvp == u'Y' and 1) or (r.rsvp == u'M' and 2) or (r.rsvp == u'N' and 3) or (r.opened and 4) or 5, r.fullname))
+    return render_template('report.html', campaign=campaign, recipients=recipients, recipient=None, count=count, wstep=6)
 
 
 @job('hasmail')

@@ -23,3 +23,6 @@ baseframe-packed.js
 packed.css
 packed.js
 error.log
+*.sql
+*.gz
+*.bz2

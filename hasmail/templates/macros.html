@@ -2,7 +2,9 @@
   <div class="list-group list-group-discreet {#- nav nav-pills nav-stacked nav-pills-filling nav-point-right -#}">
     <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('template') }}"><i class="fa fa-fw fa-pencil"></i>
       {% trans %}Write email{% endtrans %}</a>
-    {%- if recipients %}{% for r in recipients %}
+    {%- if recipients %}{%- if recipients.count() > 1000 %}
+      <span class="list-group-item"><i class="fa fa-fw fa-users"></i> Hidden</span>
+    {%- else %}{% for r in recipients %}
       <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for() }}">
         {%- if r.rendered_text -%}
           <i class="fa fa-fw fa-send"></i>
@@ -13,15 +15,17 @@
         {%- endif %}
         {{ r.fullname }}
       </a>
-    {% endfor %}{% endif %}
+    {% endfor %}{% endif %}{% endif %}
   </div>
 {% endmacro %}
 
-{% macro report_sidebar(campaign, recipients, active=none) %}
+{% macro report_sidebar(campaign, recipients, active=none, count=0) %}
   <div class="list-group list-group-discreet {#- nav nav-pills nav-stacked nav-pills-filling nav-point-right -#}">
     <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('report') }}"><i class="fa fa-fw fa-bar-chart-o"></i>
       {% trans %}View report{% endtrans %}</a>
-    {%- if recipients %}{% for r in recipients %}
+    {%- if recipients %}{%- if count > 1000 %}
+      <span class="list-group-item"><i class="fa fa-fw fa-users"></i> Hidden</span>
+    {%- else %}{% for r in recipients %}
       <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for('report') }}">
         {%- if r.rsvp == 'Y' -%}
           <i class="fa fa-fw fa-star"></i>
@@ -38,7 +42,7 @@
         {%- endif %}
         {{ r.fullname }}
       </a>
-    {% endfor %}{% endif %}
+    {% endfor %}{% endif %}{% endif %}
   </div>
 {% endmacro %}
 
