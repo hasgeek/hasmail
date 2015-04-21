@@ -146,7 +146,7 @@ def campaign_report(campaign):
     return render_template('report.html', campaign=campaign, recipients=recipients, recipient=None, count=count, wstep=6)
 
 
-@job('hasmail')
+@job('hasmail', timeout=86400)
 def campaign_send_do(campaign_id, user_id, email):
     ctx = None
     if not request:
