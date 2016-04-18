@@ -13,6 +13,7 @@
         <tr>
           <th>fullname</th>
           <th>email</th>
+          <th>phone</th>
           <th>nickname</th>
           <th>firstname</th>
           <th>lastname</th>
@@ -26,7 +27,8 @@
         {%- for r in pagination.items %}{% with editurl = r.url_for('edit') %}
         <tr>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="fullname">{{ r.fullname }}</a></td>
-          <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="email" data-value="{{ r.email }}">{{ r.email }} {%- if not r.is_email_valid() %} <i class="fa fa-warning"></i>{% endif %}</a></td>
+          <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="email" data-value="{{ r.email }}">{{ r.email }} {%- if r.email_valid == false %} <i class="fa fa-warning"></i>{% endif %}</a></td>
+          <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="phone" data-value="{{ r.phone }}">{{ r.phone }} {%- if r.phone_valid == false %} <i class="fa fa-warning"></i>{% endif %}</a></td>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="nickname">{{ r.nickname }}</a></td>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="firstname">{{ r.firstname }}</a></td>
           <td><a class="editable" href="#" data-type="text" data-url="{{ editurl }}" data-pk="{{ r.url_id }}" data-name="lastname">{{ r.lastname }}</a></td>

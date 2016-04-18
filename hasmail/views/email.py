@@ -137,6 +137,8 @@ def recipient_edit(campaign, recipient):
         value = request.form['value']
         if field == 'email':
             recipient.email = value
+        elif field == 'phone':
+            recipient.phone = value
         elif field == 'fullname':
             recipient.fullname = value or None
         elif field == 'firstname':

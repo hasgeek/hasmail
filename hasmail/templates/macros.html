@@ -51,10 +51,12 @@
     <input type="hidden" name="form.id" value="draft">
     {{ form.hidden_tag() }}
     <div class="page-header">
-      {%- if not form.revision_id.data %}
-        {{ form.subject(class="field-subject unstyled", placeholder="Subject", autofocus=true) }}
-      {%- else %}
-        {{ form.subject(class="field-subject unstyled", placeholder="Subject") }}
+      {%- if form.subject %}
+        {%- if not form.revision_id.data %}
+          {{ form.subject(class="field-subject unstyled", placeholder="Subject", autofocus=true) }}
+        {%- else %}
+          {{ form.subject(class="field-subject unstyled", placeholder="Subject") }}
+        {%- endif %}
       {%- endif %}
     </div>
     <div class="row">

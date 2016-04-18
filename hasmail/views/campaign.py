@@ -2,6 +2,7 @@
 
 from StringIO import StringIO
 import unicodecsv
+import phonenumbers
 from flask import g, url_for, request, render_template, flash, redirect, Markup
 from flask.ext.mail import Message
 from flask.ext.rq import job
@@ -16,27 +17,43 @@ from .diffpatch import update_recipient
 
 
 def import_from_csv(campaign, reader):
-    existing = set([r.email.lower() for r in
+    existing_email = set([r.email.lower() for r in
         db.session.query(EmailRecipient.email).filter(EmailRecipient.campaign == campaign).all()])
+    existing_phone = set([r.phone for r in
+        db.session.query(EmailRecipient.phone).filter(EmailRecipient.campaign == campaign).all()])
+
+    existing_email.remove(None)
+    existing_phone.remove(None)
 
     fields = set(campaign.fields)
 
     for row in reader:
         row = dict([(make_name(key), value.strip()) for key, value in row.items()])
 
-        fullname = firstname = lastname = email = nickname = None
+        fullname = firstname = lastname = email = nickname = phone = None
 
         # The first column in each of the following is significant as that is the field name
         # in the EmailRecipient model and is the name passed to the email template
 
-        # Now look for email (mandatory), first name, last name and full name
+        # Now look for email or phone (mandatory), first name, last name and full name
         for field in ['email', 'e-mail', 'email-id', 'e-mail-id', 'email-address', 'e-mail-address']:
             if field in row and row[field]:
-                email = row[field]
+                email = row[field].lower()
                 del row[field]
                 break
 
-        if not email:
+        for field in ['phone', 'phone-no', 'phone-number', 'mobile', 'mobile-no', 'mobile-number', 'telephone']:
+            if field in row and row[field]:
+                phone = row[field]
+                try:
+                    phone_parsed = phonenumbers.parse(phone, campaign.default_country)
+                    phone = phonenumbers.format_number(phone_parsed, phonenumbers.PhoneNumberFormat.E164)
+                except phonenumbers.NumberParseException:
+                    pass
+                del row[field]
+                break
+
+        if not (email or phone):
             continue
 
         # XXX: Cheating! Don't hardcode for Funnel's columns
@@ -64,15 +81,32 @@ def import_from_csv(campaign, reader):
                 del row[field]
                 break
 
-        if email.lower() not in existing:
-            recipient = EmailRecipient(campaign=campaign, email=email.lower(),
-                fullname=fullname, firstname=firstname, lastname=lastname, nickname=nickname)
-            recipient.data = {}
+        if email not in existing_email and phone not in existing_phone:
+            recipient = EmailRecipient(campaign=campaign)
+            db.session.add(recipient)
+        elif email:
+            recipient = EmailRecipient.get(campaign=campaign, email=email)
+        elif phone:
+            recipient = EmailRecipient.get(campaign=campaign, phone=phone)
+        else:
+            raise Exception("This should not happen")
+
+        if recipient:
+            recipient.email = email
+            recipient.phone = phone
+            recipient.fullname = fullname
+            recipient.firstname = firstname
+            recipient.lastname = lastname
+            recipient.nickname = nickname
+            if not recipient.data:
+                recipient.data = {}
             for key in row:
                 recipient.data[key] = row[key].strip()
                 fields.add(key)
-            db.session.add(recipient)
-            existing.add(recipient.email.lower())
+            if recipient.email:
+                existing_email.add(recipient.email)
+            if recipient.phone:
+                existing_phone.add(recipient.phone)
 
     campaign.fields = fields
 

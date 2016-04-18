@@ -6,6 +6,7 @@ from sqlalchemy.orm import defer, deferred
 import pystache
 import short_url
 from premailer import transform as email_transform
+import phonenumbers
 from coaster.utils import buid, md5sum, newsecret, LabeledEnum
 from coaster.gfm import markdown, GFM_TAGS
 from . import db, TimestampMixin, BaseMixin, BaseNameMixin, BaseScopedIdMixin, JsonDict
@@ -15,7 +16,7 @@ from .. import __
 __all__ = ['CAMPAIGN_STATUS', 'EmailCampaign', 'EmailDraft', 'EmailRecipient', 'EmailLink', 'EmailLinkRecipient']
 
 NAMESPLIT_RE = re.compile(r'[\W\.]+')
-EMAIL_RE = re.compile(r'^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$', re.I)
+EMAIL_RE = re.compile(r'^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$', re.I)
 
 EMAIL_TAGS = dict(GFM_TAGS)
 for key in EMAIL_TAGS:
@@ -45,18 +46,25 @@ class CAMPAIGN_STATUS(LabeledEnum):
     SENT = (3, __(u"Sent"))
 
 
+class CAMPAIGN_TYPE(LabeledEnum):
+    EMAIL = (0, __(u"Email"))
+    SMS = (1, __(u"SMS"))
+
+
 class EmailCampaign(BaseNameMixin, db.Model):
     __tablename__ = 'email_campaign'
 
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship(User, backref=db.backref('campaigns', order_by=db.desc('email_campaign.updated_at')))
-    status = db.Column(db.Integer, nullable=False, default=CAMPAIGN_STATUS.DRAFT)
+    status = db.Column(db.SmallInteger, nullable=False, default=CAMPAIGN_STATUS.DRAFT)
+    type = db.Column(db.SmallInteger, nullable=False, default=CAMPAIGN_TYPE.EMAIL)
     _fields = db.Column('fields', db.UnicodeText, nullable=False, default=u'')
     trackopens = db.Column(db.Boolean, nullable=False, default=False)
     trackclicks = db.Column(db.Boolean, nullable=False, default=False)
     stylesheet = db.Column(db.UnicodeText, nullable=False, default=u'')
     _cc = db.Column('cc', db.UnicodeText, nullable=True)
     _bcc = db.Column('bcc', db.UnicodeText, nullable=True)
+    default_country = db.Column(db.Unicode(2), nullable=False, default=u'IN')
 
     def __repr__(self):
         return '<EmailCampaign "%s" (%s)>' % (self.title, CAMPAIGN_STATUS.get(self.status))
@@ -169,8 +177,11 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     _lastname = db.Column('lastname', db.Unicode(80), nullable=True)
     _nickname = db.Column('nickname', db.Unicode(80), nullable=True)
 
-    _email = db.Column('email', db.Unicode(80), nullable=False, index=True)
-    md5sum = db.Column(db.String(32), nullable=False, index=True)
+    _email = db.Column('email', db.Unicode(254), nullable=True, index=True)
+    md5sum = db.Column(db.String(32), nullable=True, index=True)
+
+    _phone = db.Column('phone', db.Unicode(16), nullable=True, index=True)
+    phone_valid = db.Column(db.Boolean, nullable=True)
 
     data = db.Column(JsonDict)
 
@@ -206,10 +217,21 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
         cascade='all, delete-orphan', order_by=(draft_id, _fullname, _firstname, _lastname)))
     parent = db.synonym('campaign')
 
-    __table_args__ = (db.UniqueConstraint('campaign_id', 'url_id'),)
+    __table_args__ = (db.UniqueConstraint('campaign_id', 'url_id'),
+        db.UniqueConstraint('campaign_id', 'email'), db.UniqueConstraint('campaign_id', 'phone'),
+        db.CheckConstraint('not (email is null and phone is null)', 'email_recipient_email_phone_check'))
 
     def __repr__(self):
         return '<EmailRecipient %s %s of %s>' % (self.fullname, self.email, repr(self.campaign)[1:-1])
+
+    @classmethod
+    def get(cls, campaign, email=None, phone=None):
+        if not campaign or ((not not email) + (not not phone) != 1):
+            raise TypeError("Campaign and one of Email or phone must be provided")
+        if email:
+            return cls.query.filter_by(campaign=campaign, email=email).one_or_none()
+        elif phone:
+            return cls.query.filter_by(campaign=campaign, phone=phone).one_or_none()
 
     @property
     def fullname(self):
@@ -273,16 +295,47 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
 
     @email.setter
     def email(self, value):
-        self._email = value.lower()
-        self.md5sum = md5sum(value)
+        if value:
+            self._email = value.lower()
+            self.md5sum = md5sum(value)
+        else:
+            self._email = None
+            self.md5sum = None
+
+    @property
+    def phone(self):
+        return self._phone
+
+    @phone.setter
+    def phone(self, value):
+        if value:
+            try:
+                phone_parsed = phonenumbers.parse(value, self.campaign.default_country)
+                self._phone = phonenumbers.format_number(phone_parsed, phonenumbers.PhoneNumberFormat.E164)
+                self.phone_valid = phonenumbers.is_valid_number(phone_parsed)
+            except phonenumbers.NumberParseException:
+                self._phone = value
+                self.phone_valid = False
+        else:
+            self._phone = None
+            self.phone_valid = None
+
+    def phone_formatted(self):
+        try:
+            phone_parsed = phonenumbers.parse(self.phone)
+            return phonenumbers.format_number(phone_parsed, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
+        except phonenumbers.NumberParseException:
+            return self.phone
 
     fullname = db.synonym('_fullname', descriptor=fullname)
     firstname = db.synonym('_firstname', descriptor=firstname)
     lastname = db.synonym('_lastname', descriptor=lastname)
     nickname = db.synonym('_nickname', descriptor=nickname)
     email = db.synonym('_email', descriptor=email)
+    phone = db.synonym('_phone', descriptor=phone)
 
-    def is_email_valid(self):
+    @property
+    def email_valid(self):
         return EMAIL_RE.match(self.email) is not None
 
     @property
@@ -306,6 +359,8 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
             ('firstname', self.firstname),
             ('lastname', self.lastname),
             ('nickname', self.nickname),
+            ('phone', self.phone),
+            ('phone_formatted', self.phone_formatted),
             ('RSVP_Y', self.url_for('rsvp', status='Y')),
             ('RSVP_N', self.url_for('rsvp', status='N')),
             ('RSVP_M', self.url_for('rsvp', status='M')),
