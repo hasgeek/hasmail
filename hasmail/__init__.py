@@ -4,10 +4,10 @@
 
 from __future__ import absolute_import
 from flask import Flask
-from flask.ext.mail import Mail
-from flask.ext.rq import RQ
-from flask.ext.lastuser import Lastuser
-from flask.ext.lastuser.sqlalchemy import UserManager
+from flask_mail import Mail
+from flask_rq import RQ
+from flask_lastuser import Lastuser
+from flask_lastuser.sqlalchemy import UserManager
 from baseframe import baseframe, assets, Version, _, __
 import coaster.app
 from ._version import __version__
