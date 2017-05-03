@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from diff_match_patch import diff_match_patch
-from flask.ext.rq import job
+from flask_rq import job
 from ..models import db, EmailCampaign, EmailRecipient
 
 

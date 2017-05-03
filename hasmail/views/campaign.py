@@ -3,8 +3,8 @@
 from StringIO import StringIO
 import unicodecsv
 from flask import g, url_for, request, render_template, flash, redirect, Markup
-from flask.ext.mail import Message
-from flask.ext.rq import job
+from flask_mail import Message
+from flask_rq import job
 from coaster.utils import make_name
 from coaster.views import load_model
 from baseframe.forms import render_redirect, render_delete_sqla
