@@ -1,6 +1,5 @@
 Flask
 Flask-SQLAlchemy
-Flask-Script
 Flask-RQ
 unicodecsv
 diff-match-patch
