@@ -1,3 +1,3 @@
 #!/bin/bash
 
-rqworker -c rqdev hasmail
+rqworker -c rqinit hasmail
