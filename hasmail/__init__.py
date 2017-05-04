@@ -32,13 +32,12 @@ assets['hasmail.css'][version] = 'css/app.css'
 
 
 # Configure the app
-def init_for(env):
-    coaster.app.init_app(app, env)
-    db.init_app(app)
-    db.app = app
-    RQ(app)  # Pick up RQ configuration from the app
-    baseframe.init_app(app, requires=['hasmail'],
-        ext_requires=['bootstrap3-editable', 'codemirror-markdown', 'codemirror-css', 'fontawesome', 'baseframe-bs3'])
-    mail.init_app(app)
-    lastuser.init_app(app)
-    lastuser.init_usermanager(UserManager(db, models.User))
+coaster.app.init_app(app)
+db.init_app(app)
+db.app = app
+RQ(app)  # Pick up RQ configuration from the app
+baseframe.init_app(app, requires=['hasmail'],
+    ext_requires=['bootstrap3-editable', 'codemirror-markdown', 'codemirror-css', 'fontawesome', 'baseframe-bs3'])
+mail.init_app(app)
+lastuser.init_app(app)
+lastuser.init_usermanager(UserManager(db, models.User))
