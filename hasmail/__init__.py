@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from flask import Flask
 from flask_mail import Mail
 from flask_rq import RQ
+from flask_migrate import Migrate
 from flask_lastuser import Lastuser
 from flask_lastuser.sqlalchemy import UserManager
 from baseframe import baseframe, assets, Version, _, __
@@ -35,6 +36,7 @@ assets['hasmail.css'][version] = 'css/app.css'
 coaster.app.init_app(app)
 db.init_app(app)
 db.app = app
+migrate = Migrate(app, db)
 RQ(app)  # Pick up RQ configuration from the app
 baseframe.init_app(app, requires=['hasmail'],
     ext_requires=['bootstrap3-editable', 'codemirror-markdown', 'codemirror-css', 'fontawesome', 'baseframe-bs3'])
