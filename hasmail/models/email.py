@@ -313,9 +313,9 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
 
     def get_rendered(self, draft):
         if self.draft:
-            return pystache.render(self.template, self.template_data())
+            return pystache.render(self.template or u'', self.template_data())
         else:
-            return pystache.render(draft.template, self.template_data())
+            return pystache.render(draft.template or u'', self.template_data())
 
     def get_preview(self, draft):
         return render_preview(self.campaign, self.get_rendered(draft))
