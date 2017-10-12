@@ -1,6 +1,6 @@
-{% extends "twopane.html" %}
-{% from "macros.html" import sidebar %}
-{% from "baseframe/forms.html" import renderform %}
+{% extends "twopane.html.jinja2" %}
+{% from "macros.html.jinja2" import sidebar %}
+{% from "baseframe/forms.html.jinja2" import renderform %}
 {% block title %}{{ campaign.title }}{% endblock %}
 
 {# {% block listpane %}

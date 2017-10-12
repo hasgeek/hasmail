@@ -10,7 +10,7 @@ def index():
     if g.user:
         return redirect(url_for('dashboard'), code=303)
     else:
-        return render_template('index.html')
+        return render_template('index.html.jinja2')
 
 
 @app.route('/mail', methods=('GET', 'POST'))
@@ -23,4 +23,4 @@ def dashboard():
         db.session.add(campaign)
         db.session.commit()
         return redirect(campaign.url_for(), 303)
-    return render_template('dashboard.html', campaigns=g.user.campaigns, form=form, wstep=1, STATUS=CAMPAIGN_STATUS)
+    return render_template('dashboard.html.jinja2', campaigns=g.user.campaigns, form=form, wstep=1, STATUS=CAMPAIGN_STATUS)

@@ -95,7 +95,7 @@ def campaign_view(campaign):
             import_from_csv(campaign, reader)
         db.session.commit()
         return render_redirect(campaign.url_for('recipients'), code=303)
-    return render_template('campaign.html', campaign=campaign, form=form, wstep=2)
+    return render_template('campaign.html.jinja2', campaign=campaign, form=form, wstep=2)
 
 
 @app.route('/mail/<campaign>/delete', methods=('GET', 'POST'))
@@ -114,7 +114,7 @@ def campaign_delete(campaign):
 @load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit', kwargs=True)
 def campaign_recipients(campaign, kwargs):
     page = kwargs.get('page', 1)
-    return render_template('recipients.html', campaign=campaign, page=page, wstep=3)
+    return render_template('recipients.html.jinja2', campaign=campaign, page=page, wstep=3)
 
 
 @app.route('/mail/<campaign>/send', methods=('GET', 'POST'))
@@ -130,7 +130,7 @@ def campaign_send(campaign):
         campaign_send_do.delay(campaign.id, g.user.id, form.email.data, timeout=86400)
         flash(_(u"Your email has been queued for delivery"), 'success')
         return redirect(campaign.url_for('report'), code=303)
-    return render_template('send.html', campaign=campaign, form=form, wstep=5)
+    return render_template('send.html.jinja2', campaign=campaign, form=form, wstep=5)
 
 
 @app.route('/mail/<campaign>/report')
@@ -144,7 +144,7 @@ def campaign_report(campaign):
         recipients = campaign.recipients.all()
         recipients.sort(key=lambda r:
             ((r.rsvp == u'Y' and 1) or (r.rsvp == u'M' and 2) or (r.rsvp == u'N' and 3) or (r.opened and 4) or 5, r.fullname))
-    return render_template('report.html', campaign=campaign, recipients=recipients, recipient=None, count=count, wstep=6)
+    return render_template('report.html.jinja2', campaign=campaign, recipients=recipients, recipient=None, count=count, wstep=6)
 
 
 @job('hasmail')

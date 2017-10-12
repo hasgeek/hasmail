@@ -1,4 +1,4 @@
-{% extends "publicview.html" %}
+{% extends "publicview.html.jinja2" %}
 {% block titletags %}<title>{% block title %}RSVP received{% endblock %}</title>{% endblock %}
 {%- block content %}
   {%- if status == 'Y' %}
