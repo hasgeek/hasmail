@@ -1,4 +1,5 @@
 Flask
+Flask-Mail
 Flask-SQLAlchemy
 Flask-RQ
 unicodecsv
