@@ -1,5 +1,5 @@
-{% extends "twopane.html" %}
-{% from "macros.html" import sidebar, template_form, template_editor %}
+{% extends "twopane.html.jinja2" %}
+{% from "macros.html.jinja2" import sidebar, template_form, template_editor %}
 {% block title %}{{ campaign.title }}{% endblock %}
 
 {% block listpane %}

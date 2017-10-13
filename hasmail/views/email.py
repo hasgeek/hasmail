@@ -42,7 +42,7 @@ def campaign_template(campaign, kwargs=None):
             'subject': draft.subject,
             'revision_id': draft.revision_id
             })
-    return render_template('template.html', campaign=campaign, wstep=4, form=form)
+    return render_template('template.html.jinja2', campaign=campaign, wstep=4, form=form)
 
 
 @app.route('/mail/<campaign>/<int:recipient>', methods=('GET', 'POST'))
@@ -116,7 +116,7 @@ def recipient_view(campaign, recipient):
             'subject': recipient.subject if recipient.subject is not None else draft.subject,
             'revision_id': ob.revision_id
             })
-    return render_template('recipient.html', campaign=campaign, recipient=recipient, wstep=4, form=form,
+    return render_template('recipient.html.jinja2', campaign=campaign, recipient=recipient, wstep=4, form=form,
         already_sent=already_sent)
 
 
@@ -173,4 +173,4 @@ def recipient_delete(campaign, recipient):
     (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
     permission='report')
 def recipient_report(campaign, recipient):
-    return render_template('report.html', campaign=campaign, recipient=recipient, wstep=6)
+    return render_template('report.html.jinja2', campaign=campaign, recipient=recipient, wstep=6)

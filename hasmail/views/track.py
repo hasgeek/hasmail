@@ -66,4 +66,4 @@ def rsvp(rsvptoken, status):
     if status in ('Y', 'N', 'M'):
         recipient.rsvp = status
         db.session.commit()
-    return render_template('rsvp.html', recipient=recipient, status=status)
+    return render_template('rsvp.html.jinja2', recipient=recipient, status=status)
