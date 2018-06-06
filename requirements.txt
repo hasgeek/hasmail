@@ -2,7 +2,7 @@ Flask==1.0.2
 Flask-Mail==0.9.1
 Flask-SQLAlchemy==2.3.2
 Flask-RQ==0.2
-unicodecsv
+unicodecsv==0.14.1
 diff-match-patch
 short_url
 premailer
