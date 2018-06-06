@@ -4,7 +4,7 @@ Flask-SQLAlchemy==2.3.2
 Flask-RQ==0.2
 unicodecsv==0.14.1
 diff-match-patch==20121119
-short_url
+short_url==1.2.2
 premailer
 https://github.com/hasgeek/coaster/archive/master.zip
 https://github.com/hasgeek/baseframe/archive/master.zip
