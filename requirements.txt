@@ -1,6 +1,6 @@
 Flask==1.0.2
 Flask-Mail==0.9.1
-Flask-SQLAlchemy==2.3.2
+Flask-SQLAlchemy==2.4.0
 Flask-RQ==0.2
 unicodecsv==0.14.1
 diff-match-patch==20121119
