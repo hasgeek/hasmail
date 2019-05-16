@@ -48,7 +48,7 @@ class EmailCampaign(BaseNameMixin, db.Model):
     __tablename__ = 'email_campaign'
 
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship(User, backref=db.backref('campaigns', order_by=db.desc('email_campaign.updated_at')))
+    user = db.relationship(User, backref=db.backref('campaigns', order_by='EmailCampaign.updated_at.desc()'))
     status = db.Column(db.Integer, nullable=False, default=CAMPAIGN_STATUS.DRAFT)
     _fields = db.Column('fields', db.UnicodeText, nullable=False, default=u'')
     trackopens = db.Column(db.Boolean, nullable=False, default=False)
@@ -103,7 +103,7 @@ class EmailCampaign(BaseNameMixin, db.Model):
             self.name = buid()
 
     def recipients_iter(self):
-        ids = [i.id for i in db.session.query(EmailRecipient.id).filter(EmailRecipient.campaign == self).order_by('id').all()]
+        ids = [i.id for i in db.session.query(EmailRecipient.id).filter(EmailRecipient.campaign == self).order_by(EmailRecipient.id).all()]
         for rid in ids:
             yield EmailRecipient.query.get(rid)
 
