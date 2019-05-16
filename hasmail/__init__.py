@@ -9,7 +9,8 @@ from flask_rq import RQ
 from flask_migrate import Migrate
 from flask_lastuser import Lastuser
 from flask_lastuser.sqlalchemy import UserManager
-from baseframe import baseframe, assets, Version, _, __
+from baseframe import baseframe, assets, Version
+from baseframe import _, __  # NOQA
 import coaster.app
 from ._version import __version__
 
@@ -23,7 +24,7 @@ lastuser = Lastuser()
 
 # Second, import the models and views
 
-from . import models, views
+from . import models, views  # NOQA
 from .models import db
 
 # Third, setup baseframe and assets

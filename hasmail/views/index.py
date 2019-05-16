@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from flask import g, render_template, redirect, url_for
+import baseframe.forms as forms
 from .. import _, app, lastuser
 from ..models import db, EmailCampaign, CAMPAIGN_STATUS
-from ..forms import BlankForm
+
 
 @app.route('/')
 def index():
@@ -17,7 +18,7 @@ def index():
 @lastuser.requires_login
 # @lastuser.requires_permission('emailuser')  # To prevent public service from being abused
 def dashboard():
-    form = BlankForm()
+    form = forms.Form()
     if form.validate_on_submit():
         campaign = EmailCampaign(title=_(u"Untitled Email"), user=g.user)
         db.session.add(campaign)

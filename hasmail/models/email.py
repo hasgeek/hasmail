@@ -6,8 +6,7 @@ from sqlalchemy.orm import defer, deferred
 import pystache
 import short_url
 from premailer import transform as email_transform
-from coaster.utils import buid, md5sum, newsecret, LabeledEnum
-from coaster.gfm import markdown, GFM_TAGS
+from coaster.utils import buid, md5sum, newsecret, LabeledEnum, markdown, MARKDOWN_HTML_TAGS
 from . import db, TimestampMixin, BaseMixin, BaseNameMixin, BaseScopedIdMixin, JsonDict
 from .user import User
 from .. import __
@@ -17,7 +16,7 @@ __all__ = ['CAMPAIGN_STATUS', 'EmailCampaign', 'EmailDraft', 'EmailRecipient', '
 NAMESPLIT_RE = re.compile(r'[\W\.]+')
 EMAIL_RE = re.compile(r'^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$', re.I)
 
-EMAIL_TAGS = dict(GFM_TAGS)
+EMAIL_TAGS = dict(MARKDOWN_HTML_TAGS)
 for key in EMAIL_TAGS:
     EMAIL_TAGS[key].append('class')
     EMAIL_TAGS[key].append('style')

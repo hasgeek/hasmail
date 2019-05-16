@@ -60,7 +60,7 @@ def upgrade():
         sa.Column('url_id', sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(['campaign_id'], ['email_campaign.id'], ),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('campaign_id','url_id')
+        sa.UniqueConstraint('campaign_id', 'url_id')
         )
     op.create_table('email_recipient',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -88,7 +88,7 @@ def upgrade():
         sa.ForeignKeyConstraint(['campaign_id'], ['email_campaign.id'], ),
         sa.ForeignKeyConstraint(['draft_id'], ['email_draft.id'], ),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('campaign_id','url_id'),
+        sa.UniqueConstraint('campaign_id', 'url_id'),
         sa.UniqueConstraint('opentoken'),
         sa.UniqueConstraint('rsvptoken')
         )
