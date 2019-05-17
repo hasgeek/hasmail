@@ -31,7 +31,7 @@ def campaign_template(campaign, kwargs=None):
         # a background process, or because it's simply multi-threading with race conditions.
         # Foreground processing for now:
 
-        # patch_drafts.delay(campaign.id)
+        # patch_drafts.queue(campaign.id)
         # patch_drafts(campaign.id)
 
         # Update: we now patch on loading the recipient's draft
