@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from diff_match_patch import diff_match_patch
-from flask_rq import job
 from ..models import db, EmailCampaign, EmailRecipient
+from .. import rq
 
 
-@job('hasmail')
+@rq.job('hasmail')
 def patch_drafts(campaign_id):
     campaign = EmailCampaign.query.get(campaign_id)
     if not campaign:

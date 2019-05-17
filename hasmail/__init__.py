@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 from flask import Flask
 from flask_mail import Mail
-from flask_rq import RQ
+from flask_rq2 import RQ
 from flask_migrate import Migrate
 from flask_lastuser import Lastuser
 from flask_lastuser.sqlalchemy import UserManager
@@ -21,6 +21,7 @@ version = Version(__version__)
 app = Flask(__name__, instance_relative_config=True)
 mail = Mail()
 lastuser = Lastuser()
+rq = RQ()
 
 # Second, import the models and views
 
@@ -38,7 +39,7 @@ coaster.app.init_app(app)
 db.init_app(app)
 db.app = app
 migrate = Migrate(app, db)
-RQ(app)  # Pick up RQ configuration from the app
+rq.init_app(app)  # Pick up RQ configuration from the app
 baseframe.init_app(app, requires=['hasmail'],
     ext_requires=['bootstrap3-editable', 'codemirror-markdown', 'codemirror-css', 'fontawesome', 'baseframe-bs3'])
 mail.init_app(app)

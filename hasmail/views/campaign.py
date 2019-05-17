@@ -4,12 +4,11 @@ from StringIO import StringIO
 import unicodecsv
 from flask import g, url_for, request, render_template, flash, redirect, Markup
 from flask_mail import Message
-from flask_rq import job
 from coaster.utils import make_name
 from coaster.views import load_model
 from baseframe.forms import render_redirect, render_delete_sqla
 
-from .. import app, mail, lastuser, _
+from .. import app, rq, mail, lastuser, _
 from ..models import db, User, EmailCampaign, EmailRecipient, CAMPAIGN_STATUS
 from ..forms import CampaignSettingsForm, CampaignSendForm
 from .diffpatch import update_recipient
@@ -127,7 +126,7 @@ def campaign_send(campaign):
         campaign.status = CAMPAIGN_STATUS.QUEUED
         db.session.commit()
 
-        campaign_send_do.delay(campaign.id, g.user.id, form.email.data, timeout=86400)
+        campaign_send_do.query(campaign.id, g.user.id, form.email.data, timeout=86400)
         flash(_(u"Your email has been queued for delivery"), 'success')
         return redirect(campaign.url_for('report'), code=303)
     return render_template('send.html.jinja2', campaign=campaign, form=form, wstep=5)
@@ -147,7 +146,7 @@ def campaign_report(campaign):
     return render_template('report.html.jinja2', campaign=campaign, recipients=recipients, recipient=None, count=count, wstep=6)
 
 
-@job('hasmail')
+@rq.job('hasmail')
 def campaign_send_do(campaign_id, user_id, email):
     ctx = None
     if not request:
