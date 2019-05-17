@@ -126,7 +126,7 @@ def campaign_send(campaign):
         campaign.status = CAMPAIGN_STATUS.QUEUED
         db.session.commit()
 
-        campaign_send_do.query(campaign.id, g.user.id, form.email.data, timeout=86400)
+        campaign_send_do.queue(campaign.id, g.user.id, form.email.data, timeout=86400)
         flash(_(u"Your email has been queued for delivery"), 'success')
         return redirect(campaign.url_for('report'), code=303)
     return render_template('send.html.jinja2', campaign=campaign, form=form, wstep=5)
