@@ -1,11 +1,11 @@
-Flask==1.0.3
+Flask==1.1.1
 Flask-Mail==0.9.1
 Flask-SQLAlchemy==2.4.0
 Flask-RQ2==18.3
 unicodecsv==0.14.1
 diff-match-patch==20121119
 short_url==1.2.2
-premailer==3.4.1
+premailer==3.5.0
 https://github.com/hasgeek/coaster/archive/master.zip
 https://github.com/hasgeek/baseframe/archive/master.zip
 https://github.com/hasgeek/flask-lastuser/archive/master.zip
