@@ -3,7 +3,7 @@ Flask-Mail==0.9.1
 Flask-SQLAlchemy==2.4.1
 Flask-RQ2==18.3
 unicodecsv==0.14.1
-diff-match-patch==20121119
+diff-match-patch==20181111
 short_url==1.2.2
 premailer==3.5.0
 https://github.com/hasgeek/coaster/archive/master.zip
