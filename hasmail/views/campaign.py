@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from StringIO import StringIO
+from io import StringIO
 import unicodecsv
 from flask import g, url_for, request, render_template, flash, redirect, Markup
 from flask_mail import Message
@@ -21,7 +21,7 @@ def import_from_csv(campaign, reader):
     fields = set(campaign.fields)
 
     for row in reader:
-        row = dict([(make_name(key), value.strip()) for key, value in row.items()])
+        row = {make_name(key): value.strip() for key, value in row.items()}
 
         fullname = firstname = lastname = email = nickname = None
 
@@ -101,9 +101,9 @@ def campaign_view(campaign):
 @lastuser.requires_login
 @load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='delete')
 def campaign_delete(campaign):
-    return render_delete_sqla(campaign, db, title=_(u"Confirm delete"),
-        message=_(u"Remove campaign ‘{title}’? This will delete ALL data related to the campaign. There is no undo.").format(title=campaign.title),
-        success=_(u"You have deleted the ‘{title}’ campaign and ALL related data").format(title=campaign.title),
+    return render_delete_sqla(campaign, db, title=_("Confirm delete"),
+        message=_("Remove campaign ‘{title}’? This will delete ALL data related to the campaign. There is no undo.").format(title=campaign.title),
+        success=_("You have deleted the ‘{title}’ campaign and ALL related data").format(title=campaign.title),
         next=url_for('index'))
 
 
@@ -127,7 +127,7 @@ def campaign_send(campaign):
         db.session.commit()
 
         campaign_send_do.queue(campaign.id, g.user.id, form.email.data, timeout=86400)
-        flash(_(u"Your email has been queued for delivery"), 'success')
+        flash(_("Your email has been queued for delivery"), 'success')
         return redirect(campaign.url_for('report'), code=303)
     return render_template('send.html.jinja2', campaign=campaign, form=form, wstep=5)
 
@@ -142,7 +142,7 @@ def campaign_report(campaign):
     else:
         recipients = campaign.recipients.all()
         recipients.sort(key=lambda r:
-            ((r.rsvp == u'Y' and 1) or (r.rsvp == u'M' and 2) or (r.rsvp == u'N' and 3) or (r.opened and 4) or 5, r.fullname))
+            ((r.rsvp == 'Y' and 1) or (r.rsvp == 'M' and 2) or (r.rsvp == 'N' and 3) or (r.opened and 4) or 5, r.fullname))
     return render_template('report.html.jinja2', campaign=campaign, recipients=recipients, recipient=None, count=count, wstep=6)
 
 
@@ -173,7 +173,7 @@ def campaign_send_do(campaign_id, user_id, email):
             msg = Message(
                 subject=(recipient.subject if recipient.subject is not None else draft.subject) if recipient.draft else draft.subject,
                 sender=(user.fullname, email),
-                recipients=[u'"{fullname}" <{email}>'.format(fullname=(recipient.fullname or '').replace('"', "'"), email=recipient.email)],
+                recipients=['"{fullname}" <{email}>'.format(fullname=(recipient.fullname or '').replace('"', "'"), email=recipient.email)],
                 body=recipient.rendered_text,
                 html=Markup(recipient.rendered_html) + recipient.openmarkup(),
                 cc=campaign.cc.split('\n'),

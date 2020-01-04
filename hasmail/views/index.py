@@ -20,7 +20,7 @@ def index():
 def dashboard():
     form = forms.Form()
     if form.validate_on_submit():
-        campaign = EmailCampaign(title=_(u"Untitled Email"), user=g.user)
+        campaign = EmailCampaign(title=_("Untitled Email"), user=g.user)
         db.session.add(campaign)
         db.session.commit()
         return redirect(campaign.url_for(), 303)

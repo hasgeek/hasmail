@@ -160,9 +160,9 @@ def recipient_edit(campaign, recipient):
     (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
     permission='delete')
 def recipient_delete(campaign, recipient):
-    return render_delete_sqla(recipient, db, title=_(u"Confirm delete"),
-        message=_(u"Remove recipient ‘{fullname}’? ").format(fullname=recipient.fullname),
-        success=_(u"You have removed recipient ‘{fullname}’").format(fullname=recipient.fullname),
+    return render_delete_sqla(recipient, db, title=_("Confirm delete"),
+        message=_("Remove recipient ‘{fullname}’? ").format(fullname=recipient.fullname),
+        success=_("You have removed recipient ‘{fullname}’").format(fullname=recipient.fullname),
         next=campaign.url_for('recipients'))
 
 

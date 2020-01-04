@@ -25,23 +25,23 @@ del key
 
 def render_preview(campaign, text):
     if campaign.stylesheet is not None and campaign.stylesheet.strip():
-        stylesheet = u'<style type="text/css">%s</style>\n' % escape(campaign.stylesheet)
+        stylesheet = '<style type="text/css">%s</style>\n' % escape(campaign.stylesheet)
     else:
-        stylesheet = u''
+        stylesheet = ''
     if text:
         # email_transform uses LXML, which does not like empty strings
         return email_transform(
             Markup(stylesheet) + markdown(text, html=True, valid_tags=EMAIL_TAGS),
             base_url=request.url_root)
     else:
-        return u''
+        return ''
 
 
 class CAMPAIGN_STATUS(LabeledEnum):
-    DRAFT = (0, __(u"Draft"))
-    QUEUED = (1, __(u"Queued"))
-    SENDING = (2, __(u"Sending"))
-    SENT = (3, __(u"Sent"))
+    DRAFT = (0, __("Draft"))
+    QUEUED = (1, __("Queued"))
+    SENDING = (2, __("Sending"))
+    SENT = (3, __("Sent"))
 
 
 class EmailCampaign(BaseNameMixin, db.Model):
@@ -50,10 +50,10 @@ class EmailCampaign(BaseNameMixin, db.Model):
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship(User, backref=db.backref('campaigns', order_by='EmailCampaign.updated_at.desc()'))
     status = db.Column(db.Integer, nullable=False, default=CAMPAIGN_STATUS.DRAFT)
-    _fields = db.Column('fields', db.UnicodeText, nullable=False, default=u'')
+    _fields = db.Column('fields', db.UnicodeText, nullable=False, default='')
     trackopens = db.Column(db.Boolean, nullable=False, default=False)
     trackclicks = db.Column(db.Boolean, nullable=False, default=False)
-    stylesheet = db.Column(db.UnicodeText, nullable=False, default=u'')
+    stylesheet = db.Column(db.UnicodeText, nullable=False, default='')
     _cc = db.Column('cc', db.UnicodeText, nullable=True)
     _bcc = db.Column('bcc', db.UnicodeText, nullable=True)
 
@@ -62,14 +62,14 @@ class EmailCampaign(BaseNameMixin, db.Model):
 
     @property
     def fields(self):
-        flist = self._fields.split(u' ')
-        while u'' in flist:
-            flist.remove(u'')
+        flist = self._fields.split(' ')
+        while '' in flist:
+            flist.remove('')
         return tuple(flist)
 
     @fields.setter
     def fields(self, value):
-        self._fields = u' '.join(sorted(set(value)))
+        self._fields = ' '.join(sorted(set(value)))
 
     fields = db.synonym('_fields', descriptor=fields)
 
@@ -79,9 +79,9 @@ class EmailCampaign(BaseNameMixin, db.Model):
 
     @cc.setter
     def cc(self, value):
-        if isinstance(value, basestring):
-            value = [l.strip() for l in value.replace(u'\r\n', u'\n').replace(u'\r', u'\n').split(u'\n') if l]
-        self._cc = u'\n'.join(sorted(set(value)))
+        if isinstance(value, str):
+            value = [l.strip() for l in value.replace('\r\n', '\n').replace('\r', '\n').split('\n') if l]
+        self._cc = '\n'.join(sorted(set(value)))
 
     cc = db.synonym('_cc', descriptor=cc)
 
@@ -91,9 +91,9 @@ class EmailCampaign(BaseNameMixin, db.Model):
 
     @bcc.setter
     def bcc(self, value):
-        if isinstance(value, basestring):
-            value = [l.strip() for l in value.replace(u'\r\n', u'\n').replace(u'\r', u'\n').split(u'\n') if l]
-        self._bcc = u'\n'.join(sorted(set(value)))
+        if isinstance(value, str):
+            value = [l.strip() for l in value.replace('\r\n', '\n').replace('\r', '\n').split('\n') if l]
+        self._bcc = '\n'.join(sorted(set(value)))
 
     bcc = db.synonym('_bcc', descriptor=bcc)
 
@@ -145,8 +145,8 @@ class EmailDraft(BaseScopedIdMixin, db.Model):
     parent = db.synonym('campaign')
     revision_id = db.synonym('url_id')
 
-    subject = deferred(db.Column(db.Unicode(250), nullable=False, default=u""))
-    template = deferred(db.Column(db.UnicodeText, nullable=False, default=u""))
+    subject = deferred(db.Column(db.Unicode(250), nullable=False, default=""))
+    template = deferred(db.Column(db.UnicodeText, nullable=False, default=""))
 
     __table_args__ = (db.UniqueConstraint('campaign_id', 'url_id'),)
 
@@ -220,7 +220,7 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
         elif self._firstname:
             if self._lastname:
                 # FIXME: Cultural assumption of <first> <space> <last> name.
-                return u"{first} {last}".format(first=self._firstname, last=self._lastname)
+                return "{first} {last}".format(first=self._firstname, last=self._lastname)
             else:
                 return self._firstname
         elif self._lastname:
@@ -308,13 +308,13 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
             ('RSVP_Y', self.url_for('rsvp', status='Y')),
             ('RSVP_N', self.url_for('rsvp', status='N')),
             ('RSVP_M', self.url_for('rsvp', status='M')),
-            ] + (self.data.items() if self.data else []))
+            ] + (list(self.data.items()) if self.data else []))
 
     def get_rendered(self, draft):
         if self.draft:
-            return pystache.render(self.template or u'', self.template_data())
+            return pystache.render(self.template or '', self.template_data())
         else:
-            return pystache.render(draft.template or u'', self.template_data())
+            return pystache.render(draft.template or '', self.template_data())
 
     def get_preview(self, draft):
         return render_preview(self.campaign, self.get_rendered(draft))
@@ -336,13 +336,13 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     def openmarkup(self):
         if self.campaign.trackopens:
             return Markup(
-                u'\n<img src="{url}" width="1" height="1" alt="" border="0" style="height:1px !important;'
-                u'width:1px !important;border-width:0 !important;margin-top:0 !important;'
-                u'margin-bottom:0 !important;margin-right:0 !important;margin-left:0 !important;'
-                u'padding-top:0 !important;padding-bottom:0 !important;padding-right:0 !important;'
-                u'padding-left:0 !important;"/>'.format(url=self.url_for('trackopen')))
+                '\n<img src="{url}" width="1" height="1" alt="" border="0" style="height:1px !important;'
+                'width:1px !important;border-width:0 !important;margin-top:0 !important;'
+                'margin-bottom:0 !important;margin-right:0 !important;margin-left:0 !important;'
+                'padding-top:0 !important;padding-bottom:0 !important;padding-right:0 !important;'
+                'padding-left:0 !important;"/>'.format(url=self.url_for('trackopen')))
         else:
-            return Markup(u'')
+            return Markup('')
 
     @classmethod
     def custom_draft_in(cls, campaign):
