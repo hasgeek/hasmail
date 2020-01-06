@@ -299,16 +299,19 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
                 EmailRecipient.campaign == self.campaign).first() or 0) + 1
 
     def template_data(self):
-        return dict([
-            ('fullname', self.fullname),
-            ('email', self.email),
-            ('firstname', self.firstname),
-            ('lastname', self.lastname),
-            ('nickname', self.nickname),
-            ('RSVP_Y', self.url_for('rsvp', status='Y')),
-            ('RSVP_N', self.url_for('rsvp', status='N')),
-            ('RSVP_M', self.url_for('rsvp', status='M')),
-            ] + (list(self.data.items()) if self.data else []))
+        tdata = {
+            'fullname': self.fullname,
+            'email': self.email,
+            'firstname': self.firstname,
+            'lastname': self.lastname,
+            'nickname': self.nickname,
+            'RSVP_Y': self.url_for('rsvp', status='Y'),
+            'RSVP_N': self.url_for('rsvp', status='N'),
+            'RSVP_M': self.url_for('rsvp', status='M'),
+        }
+        if self.data:
+            tdata.update(self.data)
+        return tdata
 
     def get_rendered(self, draft):
         if self.draft:
