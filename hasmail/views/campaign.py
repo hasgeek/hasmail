@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from io import BytesIO
-import unicodecsv
+import csv
+from io import StringIO
 from flask import g, url_for, request, render_template, flash, redirect, Markup
 from flask_mail import Message
 from coaster.utils import make_name
@@ -83,15 +83,12 @@ def campaign_view(campaign):
     form = CampaignSettingsForm(obj=campaign)
     if form.validate_on_submit():
         form.populate_obj(campaign)
-        if request.files.get('importfile', ''):
+        if 'importfile' in request.files:
             fileob = request.files['importfile']
-            if hasattr(fileob, 'getvalue'):
-                data = fileob.getvalue()
-            else:
-                data = fileob.read()
-            data = BytesIO(data)
-            reader = unicodecsv.DictReader(data)
-            import_from_csv(campaign, reader)
+            if fileob.filename != '':
+                data = StringIO(fileob.read().decode())
+                reader = csv.DictReader(data)
+                import_from_csv(campaign, reader)
         db.session.commit()
         return render_redirect(campaign.url_for('recipients'), code=303)
     return render_template('campaign.html.jinja2', campaign=campaign, form=form, wstep=2)
