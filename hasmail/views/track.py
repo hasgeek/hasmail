@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from base64 import b64decode
 from datetime import datetime
 from flask import request, redirect, render_template
 from coaster.views import load_models
 from .. import app
 from ..models import db, EmailRecipient, EmailLink, EmailLinkRecipient
 
-gif1x1 = 'R0lGODlhAQABAJAAAP8AAAAAACH5BAUQAAAALAAAAAABAAEAAAICBAEAOw=='.decode('base64')
+gif1x1 = b64decode(b'R0lGODlhAQABAJAAAP8AAAAAACH5BAUQAAAALAAAAAABAAEAAAICBAEAOw==')
 
 
 def track_open_inner(recipient, isopen=True):

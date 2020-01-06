@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from io import StringIO
+from io import BytesIO
 import unicodecsv
 from flask import g, url_for, request, render_template, flash, redirect, Markup
 from flask_mail import Message
@@ -83,13 +83,13 @@ def campaign_view(campaign):
     form = CampaignSettingsForm(obj=campaign)
     if form.validate_on_submit():
         form.populate_obj(campaign)
-        if 'importfile' in request.files:
+        if request.files.get('importfile', ''):
             fileob = request.files['importfile']
             if hasattr(fileob, 'getvalue'):
                 data = fileob.getvalue()
             else:
                 data = fileob.read()
-            data = StringIO(data.replace('\r\n', '\n').replace('\r', '\n'))
+            data = BytesIO(data)
             reader = unicodecsv.DictReader(data)
             import_from_csv(campaign, reader)
         db.session.commit()
