@@ -139,7 +139,7 @@ def campaign_report(campaign):
     else:
         recipients = campaign.recipients.all()
         recipients.sort(key=lambda r:
-            ((r.rsvp == 'Y' and 1) or (r.rsvp == 'M' and 2) or (r.rsvp == 'N' and 3) or (r.opened and 4) or 5, r.fullname))
+            ((r.rsvp == 'Y' and 1) or (r.rsvp == 'M' and 2) or (r.rsvp == 'N' and 3) or (r.opened and 4) or 5, r.fullname or ''))
     return render_template('report.html.jinja2', campaign=campaign, recipients=recipients, recipient=None, count=count, wstep=6)
 
 
