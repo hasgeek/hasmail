@@ -40,7 +40,8 @@ def campaign_template(campaign, kwargs=None):
             'template': draft.template,
             'preview': draft.get_preview(),
             'subject': draft.subject,
-            'revision_id': draft.revision_id
+            'revision_id': draft.revision_id,
+            'form_nonce': form.form_nonce.default(),
             })
     return render_template('template.html.jinja2', campaign=campaign, wstep=4, form=form)
 
