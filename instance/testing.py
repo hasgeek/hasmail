@@ -42,4 +42,4 @@ ADMINS = []
 #: Log file
 LOGFILE = 'error.log'
 # redis settings for RQ
-REDIS_URL = 'redis://localhost:6379/0'
+RQ_REDIS_URL = 'redis://localhost:6379/0'
