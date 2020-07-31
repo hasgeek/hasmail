@@ -1,5 +1,5 @@
 #: Site title
-SITE_TITLE = 'HasGeek App'
+SITE_TITLE = 'Hasgeek App'
 #: Site id (for network bar)
 SITE_ID = ''
 #: Google Analytics code
@@ -35,7 +35,7 @@ LASTUSER_CLIENT_SECRET = ''
 #: MAIL_DEFAULT_SENDER : default None
 MAIL_FAIL_SILENTLY = False
 MAIL_SERVER = 'localhost'
-MAIL_DEFAULT_SENDER = 'HasGeek <test@example.com>'
+MAIL_DEFAULT_SENDER = 'Hasgeek <test@example.com>'
 DEFAULT_MAIL_SENDER = MAIL_DEFAULT_SENDER  # For compatibility with older Flask-Mail
 #: Logging: recipients of error emails
 ADMINS = []
