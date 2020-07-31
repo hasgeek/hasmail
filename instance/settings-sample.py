@@ -2,7 +2,7 @@ import json
 import os
 
 #: Site title
-SITE_TITLE = os.environ.get('SITE_TITLE', 'HasGeek App')
+SITE_TITLE = os.environ.get('SITE_TITLE', 'Hasgeek App')
 #: Site id (for network bar)
 SITE_ID = os.environ.get('SITE_ID', '')
 #: Google Analytics code
@@ -38,7 +38,7 @@ MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False') == 'True'
 MAIL_USERNAME = os.environ.get('MAIL_USERNAME', None)
 MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', None)
 MAIL_DEFAULT_SENDER = os.environ.get(
-    'MAIL_DEFAULT_SENDER', 'HasGeek <test@example.com>'
+    'MAIL_DEFAULT_SENDER', 'Hasgeek <test@example.com>'
 )
 DEFAULT_MAIL_SENDER = os.environ.get(
     'DEFAULT_MAIL_SENDER', MAIL_DEFAULT_SENDER
