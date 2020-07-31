@@ -21,4 +21,6 @@ def upgrade():
 
 def downgrade():
     op.alter_column('email_recipient', 'template', new_column_name='template_text')
-    op.add_column('email_recipient', sa.Column('template_html', sa.TEXT(), nullable=True))
+    op.add_column(
+        'email_recipient', sa.Column('template_html', sa.TEXT(), nullable=True)
+    )

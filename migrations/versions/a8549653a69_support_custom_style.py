@@ -15,7 +15,12 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('email_campaign', sa.Column('stylesheet', sa.UnicodeText(), nullable=False, server_default=sa.text("''")))
+    op.add_column(
+        'email_campaign',
+        sa.Column(
+            'stylesheet', sa.UnicodeText(), nullable=False, server_default=sa.text("''")
+        ),
+    )
     op.alter_column('email_campaign', 'stylesheet', server_default=None)
 
 

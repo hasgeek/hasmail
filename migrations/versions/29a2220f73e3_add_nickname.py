@@ -15,7 +15,9 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('email_recipient', sa.Column('nickname', sa.Unicode(length=80), nullable=True))
+    op.add_column(
+        'email_recipient', sa.Column('nickname', sa.Unicode(length=80), nullable=True)
+    )
 
 
 def downgrade():

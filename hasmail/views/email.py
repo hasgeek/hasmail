@@ -1,26 +1,32 @@
-# -*- coding: utf-8 -*-
+from flask import jsonify, render_template, request
 
-from flask import render_template, request, jsonify
-from coaster.views import load_model, load_models
 from baseframe.forms import render_delete_sqla
+from coaster.views import load_model, load_models
 
-from .. import app, lastuser, _
-from ..models import db, EmailCampaign, EmailRecipient, EmailDraft
+from .. import _, app, lastuser
 from ..forms import TemplateForm
+from ..models import EmailCampaign, EmailDraft, EmailRecipient, db
 from .diffpatch import update_recipient
 
 
 @app.route('/mail/<campaign>/write', methods=('GET', 'POST'))
 @lastuser.requires_login
-@load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit', kwargs=True)
+@load_model(
+    EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit', kwargs=True
+)
 def campaign_template(campaign, kwargs=None):
     draft = campaign.draft()
     form = TemplateForm(obj=draft)
     if form.validate_on_submit():
         # Make a new draft if we're editing an existing draft or there is no existing draft.
         # But don't make new drafts on page reload with no content change
-        if not draft or (draft.revision_id == form.revision_id.data and (
-                draft.subject != form.subject.data or draft.template != form.template.data)):
+        if not draft or (
+            draft.revision_id == form.revision_id.data
+            and (
+                draft.subject != form.subject.data
+                or draft.template != form.template.data
+            )
+        ):
             draft = EmailDraft(campaign=campaign)
             db.session.add(draft)
         draft.subject = form.subject.data
@@ -36,14 +42,18 @@ def campaign_template(campaign, kwargs=None):
 
         # Update: we now patch on loading the recipient's draft
 
-        return jsonify({
-            'template': draft.template,
-            'preview': draft.get_preview(),
-            'subject': draft.subject,
-            'revision_id': draft.revision_id,
-            'form_nonce': form.form_nonce.default(),
-            })
-    return render_template('template.html.jinja2', campaign=campaign, wstep=4, form=form)
+        return jsonify(
+            {
+                'template': draft.template,
+                'preview': draft.get_preview(),
+                'subject': draft.subject,
+                'revision_id': draft.revision_id,
+                'form_nonce': form.form_nonce.default(),
+            }
+        )
+    return render_template(
+        'template.html.jinja2', campaign=campaign, wstep=4, form=form
+    )
 
 
 @app.route('/mail/<campaign>/<int:recipient>', methods=('GET', 'POST'))
@@ -51,7 +61,8 @@ def campaign_template(campaign, kwargs=None):
 @load_models(
     (EmailCampaign, {'name': 'campaign'}, 'campaign'),
     (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
-    permission='edit')
+    permission='edit',
+)
 def recipient_view(campaign, recipient):
     draft = campaign.draft()
     already_sent = bool(recipient.rendered_text)
@@ -76,12 +87,14 @@ def recipient_view(campaign, recipient):
                 ob = recipient
             else:
                 ob = draft
-            return jsonify({
-                'template': ob.template,
-                'preview': recipient.get_preview(draft),
-                'subject': ob.subject,
-                'revision_id': ob.revision_id
-                })
+            return jsonify(
+                {
+                    'template': ob.template,
+                    'preview': recipient.get_preview(draft),
+                    'subject': ob.subject,
+                    'revision_id': ob.revision_id,
+                }
+            )
 
         if not draft:
             # Make a blank draft for reference
@@ -111,14 +124,24 @@ def recipient_view(campaign, recipient):
             ob = recipient
         else:
             ob = draft
-        return jsonify({
-            'template': ob.template,
-            'preview': recipient.get_preview(draft),
-            'subject': recipient.subject if recipient.subject is not None else draft.subject,
-            'revision_id': ob.revision_id
-            })
-    return render_template('recipient.html.jinja2', campaign=campaign, recipient=recipient, wstep=4, form=form,
-        already_sent=already_sent)
+        return jsonify(
+            {
+                'template': ob.template,
+                'preview': recipient.get_preview(draft),
+                'subject': recipient.subject
+                if recipient.subject is not None
+                else draft.subject,
+                'revision_id': ob.revision_id,
+            }
+        )
+    return render_template(
+        'recipient.html.jinja2',
+        campaign=campaign,
+        recipient=recipient,
+        wstep=4,
+        form=form,
+        already_sent=already_sent,
+    )
 
 
 @app.route('/mail/<campaign>/<recipient>/edit', methods=('POST',))
@@ -126,10 +149,14 @@ def recipient_view(campaign, recipient):
 @load_models(
     (EmailCampaign, {'name': 'campaign'}, 'campaign'),
     (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
-    permission='edit')
+    permission='edit',
+)
 def recipient_edit(campaign, recipient):
 
-    if request.form.get('pk', '').isdigit() and int(request.form['pk']) == recipient.url_id:
+    if (
+        request.form.get('pk', '').isdigit()
+        and int(request.form['pk']) == recipient.url_id
+    ):
         if 'name' not in request.form:
             return _("Field not specified"), 400
         if 'value' not in request.form:
@@ -159,12 +186,21 @@ def recipient_edit(campaign, recipient):
 @load_models(
     (EmailCampaign, {'name': 'campaign'}, 'campaign'),
     (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
-    permission='delete')
+    permission='delete',
+)
 def recipient_delete(campaign, recipient):
-    return render_delete_sqla(recipient, db, title=_("Confirm delete"),
-        message=_("Remove recipient ‘{fullname}’? ").format(fullname=recipient.fullname),
-        success=_("You have removed recipient ‘{fullname}’").format(fullname=recipient.fullname),
-        next=campaign.url_for('recipients'))
+    return render_delete_sqla(
+        recipient,
+        db,
+        title=_("Confirm delete"),
+        message=_("Remove recipient ‘{fullname}’? ").format(
+            fullname=recipient.fullname
+        ),
+        success=_("You have removed recipient ‘{fullname}’").format(
+            fullname=recipient.fullname
+        ),
+        next=campaign.url_for('recipients'),
+    )
 
 
 @app.route('/mail/<campaign>/<recipient>/report')
@@ -172,6 +208,9 @@ def recipient_delete(campaign, recipient):
 @load_models(
     (EmailCampaign, {'name': 'campaign'}, 'campaign'),
     (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
-    permission='report')
+    permission='report',
+)
 def recipient_report(campaign, recipient):
-    return render_template('report.html.jinja2', campaign=campaign, recipient=recipient, wstep=6)
+    return render_template(
+        'report.html.jinja2', campaign=campaign, recipient=recipient, wstep=6
+    )

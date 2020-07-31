@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
-
 from base64 import b64decode
 from datetime import datetime
-from flask import request, redirect, render_template
+
+from flask import redirect, render_template, request
+
 from coaster.views import load_models
+
 from .. import app
-from ..models import db, EmailRecipient, EmailLink, EmailLinkRecipient
+from ..models import EmailLink, EmailLinkRecipient, EmailRecipient, db
 
 gif1x1 = b64decode(b'R0lGODlhAQABAJAAAP8AAAAAACH5BAUQAAAALAAAAAABAAEAAAICBAEAOw==')
 
@@ -31,25 +32,34 @@ def track_open_gif(opentoken):
     if recipient is not None:
         track_open_inner(recipient, isopen=True)
         db.session.commit()
-        return gif1x1, 200, {
-            'Content-Type': 'image/gif',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-            }
+        return (
+            gif1x1,
+            200,
+            {
+                'Content-Type': 'image/gif',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+            },
+        )
     else:
-        return gif1x1, 404, {
-            'Content-Type': 'image/gif',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-            }
+        return (
+            gif1x1,
+            404,
+            {
+                'Content-Type': 'image/gif',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+            },
+        )
 
 
 @app.route('/go/<name>/<opentoken>')
 @load_models(
     (EmailLink, {'name': 'name'}, 'link'),
-    (EmailRecipient, {'opentoken': 'opentoken'}, 'recipient'))
+    (EmailRecipient, {'opentoken': 'opentoken'}, 'recipient'),
+)
 def track_open_link(link, recipient):
     track_open_inner(recipient, isopen=False)
     link_recipient = EmailLinkRecipient.query.get((link.id, recipient.id))

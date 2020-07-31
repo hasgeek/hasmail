@@ -1,17 +1,34 @@
-# -*- coding: utf-8 -*-
-
 import re
-from flask import url_for, Markup, request, escape
+
 from sqlalchemy.orm import defer, deferred
+
+from flask import Markup, escape, request, url_for
+
+from premailer import transform as email_transform
 import pystache
 import short_url
-from premailer import transform as email_transform
-from coaster.utils import buid, md5sum, newsecret, LabeledEnum, markdown, MARKDOWN_HTML_TAGS
-from . import db, TimestampMixin, BaseMixin, BaseNameMixin, BaseScopedIdMixin, JsonDict
-from .user import User
-from .. import __
 
-__all__ = ['CAMPAIGN_STATUS', 'EmailCampaign', 'EmailDraft', 'EmailRecipient', 'EmailLink', 'EmailLinkRecipient']
+from coaster.utils import (
+    MARKDOWN_HTML_TAGS,
+    LabeledEnum,
+    buid,
+    markdown,
+    md5sum,
+    newsecret,
+)
+
+from .. import __
+from . import BaseMixin, BaseNameMixin, BaseScopedIdMixin, JsonDict, TimestampMixin, db
+from .user import User
+
+__all__ = [
+    'CAMPAIGN_STATUS',
+    'EmailCampaign',
+    'EmailDraft',
+    'EmailRecipient',
+    'EmailLink',
+    'EmailLinkRecipient',
+]
 
 NAMESPLIT_RE = re.compile(r'[\W\.]+')
 EMAIL_RE = re.compile(r'^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$', re.I)
@@ -32,12 +49,13 @@ def render_preview(campaign, text):
         # email_transform uses LXML, which does not like empty strings
         return email_transform(
             Markup(stylesheet) + markdown(text, html=True, valid_tags=EMAIL_TAGS),
-            base_url=request.url_root)
+            base_url=request.url_root,
+        )
     else:
         return ''
 
 
-class CAMPAIGN_STATUS(LabeledEnum):
+class CAMPAIGN_STATUS(LabeledEnum):  # NOQA: N801
     DRAFT = (0, __("Draft"))
     QUEUED = (1, __("Queued"))
     SENDING = (2, __("Sending"))
@@ -48,7 +66,10 @@ class EmailCampaign(BaseNameMixin, db.Model):
     __tablename__ = 'email_campaign'
 
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship(User, backref=db.backref('campaigns', order_by='EmailCampaign.updated_at.desc()'))
+    user = db.relationship(
+        User,
+        backref=db.backref('campaigns', order_by='EmailCampaign.updated_at.desc()'),
+    )
     status = db.Column(db.Integer, nullable=False, default=CAMPAIGN_STATUS.DRAFT)
     _fields = db.Column('fields', db.UnicodeText, nullable=False, default='')
     trackopens = db.Column(db.Boolean, nullable=False, default=False)
@@ -58,7 +79,10 @@ class EmailCampaign(BaseNameMixin, db.Model):
     _bcc = db.Column('bcc', db.UnicodeText, nullable=True)
 
     def __repr__(self):
-        return '<EmailCampaign "%s" (%s)>' % (self.title, CAMPAIGN_STATUS.get(self.status))
+        return '<EmailCampaign "%s" (%s)>' % (
+            self.title,
+            CAMPAIGN_STATUS.get(self.status),
+        )
 
     @property
     def fields(self):
@@ -80,7 +104,11 @@ class EmailCampaign(BaseNameMixin, db.Model):
     @cc.setter
     def cc(self, value):
         if isinstance(value, str):
-            value = [l.strip() for l in value.replace('\r\n', '\n').replace('\r', '\n').split('\n') if l]
+            value = [
+                _l.strip()
+                for _l in value.replace('\r\n', '\n').replace('\r', '\n').split('\n')
+                if _l
+            ]
         self._cc = '\n'.join(sorted(set(value)))
 
     cc = db.synonym('_cc', descriptor=cc)
@@ -92,7 +120,11 @@ class EmailCampaign(BaseNameMixin, db.Model):
     @bcc.setter
     def bcc(self, value):
         if isinstance(value, str):
-            value = [l.strip() for l in value.replace('\r\n', '\n').replace('\r', '\n').split('\n') if l]
+            value = [
+                _l.strip()
+                for _l in value.replace('\r\n', '\n').replace('\r', '\n').split('\n')
+                if _l
+            ]
         self._bcc = '\n'.join(sorted(set(value)))
 
     bcc = db.synonym('_bcc', descriptor=bcc)
@@ -103,20 +135,20 @@ class EmailCampaign(BaseNameMixin, db.Model):
             self.name = buid()
 
     def recipients_iter(self):
-        ids = [i.id for i in db.session.query(EmailRecipient.id).filter(EmailRecipient.campaign == self).order_by(EmailRecipient.id).all()]
+        ids = [
+            i.id
+            for i in db.session.query(EmailRecipient.id)
+            .filter(EmailRecipient.campaign == self)
+            .order_by(EmailRecipient.id)
+            .all()
+        ]
         for rid in ids:
             yield EmailRecipient.query.get(rid)
 
     def permissions(self, user, inherited=None):
         perms = super(EmailCampaign, self).permissions(user, inherited)
         if user is not None and user == self.user:
-            perms.update([
-                'edit',
-                'delete',
-                'send',
-                'new-recipient',
-                'report',
-                ])
+            perms.update(['edit', 'delete', 'send', 'new-recipient', 'report'])
         return perms
 
     def url_for(self, action='view', **kwargs):
@@ -140,8 +172,12 @@ class EmailDraft(BaseScopedIdMixin, db.Model):
     __tablename__ = 'email_draft'
 
     campaign_id = db.Column(None, db.ForeignKey('email_campaign.id'), nullable=False)
-    campaign = db.relationship(EmailCampaign, backref=db.backref('drafts',
-        cascade='all, delete-orphan', order_by='EmailDraft.url_id'))
+    campaign = db.relationship(
+        EmailCampaign,
+        backref=db.backref(
+            'drafts', cascade='all, delete-orphan', order_by='EmailDraft.url_id'
+        ),
+    )
     parent = db.synonym('campaign')
     revision_id = db.synonym('url_id')
 
@@ -174,7 +210,9 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     data = db.Column(JsonDict)
 
     # Support email open tracking
-    opentoken = db.Column(db.Unicode(44), nullable=False, default=newsecret, unique=True)
+    opentoken = db.Column(
+        db.Unicode(44), nullable=False, default=newsecret, unique=True
+    )
     opened = db.Column(db.Boolean, nullable=False, default=False)
     opened_ipaddr = db.Column(db.Unicode(45), nullable=True)
     opened_first_at = db.Column(db.DateTime, nullable=True)
@@ -182,7 +220,9 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     opened_count = db.Column(db.Integer, nullable=False, default=0)
 
     # Support RSVP if the email requires it
-    rsvptoken = db.Column(db.Unicode(44), nullable=False, default=newsecret, unique=True)
+    rsvptoken = db.Column(
+        db.Unicode(44), nullable=False, default=newsecret, unique=True
+    )
     rsvp = db.Column(db.Unicode(1), nullable=True)  # Y/N/M response
 
     # Customised template for this recipient
@@ -201,14 +241,25 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
     # Recipients may be emailed as a group with all emails in the To field. Unique number to identify them
     linkgroup = db.Column(db.Integer, nullable=True)
 
-    campaign = db.relationship(EmailCampaign, backref=db.backref('recipients', lazy='dynamic',
-        cascade='all, delete-orphan', order_by=(draft_id, _fullname, _firstname, _lastname)))
+    campaign = db.relationship(
+        EmailCampaign,
+        backref=db.backref(
+            'recipients',
+            lazy='dynamic',
+            cascade='all, delete-orphan',
+            order_by=(draft_id, _fullname, _firstname, _lastname),
+        ),
+    )
     parent = db.synonym('campaign')
 
     __table_args__ = (db.UniqueConstraint('campaign_id', 'url_id'),)
 
     def __repr__(self):
-        return '<EmailRecipient %s %s of %s>' % (self.fullname, self.email, repr(self.campaign)[1:-1])
+        return '<EmailRecipient %s %s of %s>' % (
+            self.fullname,
+            self.email,
+            repr(self.campaign)[1:-1],
+        )
 
     @property
     def fullname(self):
@@ -220,7 +271,9 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
         elif self._firstname:
             if self._lastname:
                 # FIXME: Cultural assumption of <first> <space> <last> name.
-                return "{first} {last}".format(first=self._firstname, last=self._lastname)
+                return "{first} {last}".format(
+                    first=self._firstname, last=self._lastname
+                )
             else:
                 return self._firstname
         elif self._lastname:
@@ -295,8 +348,12 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
 
     def make_linkgroup(self):
         if self.linkgroup is None and self.campaign is not None:
-            self.linkgroup = (db.session.query(EmailRecipient.linkgroup).filter(
-                EmailRecipient.campaign == self.campaign).first() or 0) + 1
+            self.linkgroup = (
+                db.session.query(EmailRecipient.linkgroup)
+                .filter(EmailRecipient.campaign == self.campaign)
+                .first()
+                or 0
+            ) + 1
 
     def template_data(self):
         tdata = {
@@ -324,15 +381,41 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
 
     def url_for(self, action='view', _external=False, **kwargs):
         if action == 'view' or action == 'template':
-            return url_for('recipient_view', campaign=self.campaign.name, recipient=self.url_id, _external=_external, **kwargs)
+            return url_for(
+                'recipient_view',
+                campaign=self.campaign.name,
+                recipient=self.url_id,
+                _external=_external,
+                **kwargs,
+            )
         elif action == 'edit':
-            return url_for('recipient_edit', campaign=self.campaign.name, recipient=self.url_id, _external=_external, **kwargs)
+            return url_for(
+                'recipient_edit',
+                campaign=self.campaign.name,
+                recipient=self.url_id,
+                _external=_external,
+                **kwargs,
+            )
         elif action == 'delete':
-            return url_for('recipient_delete', campaign=self.campaign.name, recipient=self.url_id, _external=_external, **kwargs)
+            return url_for(
+                'recipient_delete',
+                campaign=self.campaign.name,
+                recipient=self.url_id,
+                _external=_external,
+                **kwargs,
+            )
         elif action == 'trackopen':
-            return url_for('track_open_gif', opentoken=self.opentoken, _external=True, **kwargs)
+            return url_for(
+                'track_open_gif', opentoken=self.opentoken, _external=True, **kwargs
+            )
         elif action == 'report':
-            return url_for('recipient_report', campaign=self.campaign.name, recipient=self.url_id, _external=_external, **kwargs)
+            return url_for(
+                'recipient_report',
+                campaign=self.campaign.name,
+                recipient=self.url_id,
+                _external=_external,
+                **kwargs,
+            )
         elif action == 'rsvp':
             return url_for('rsvp', rsvptoken=self.rsvptoken, _external=True, **kwargs)
 
@@ -343,20 +426,37 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
                 'width:1px !important;border-width:0 !important;margin-top:0 !important;'
                 'margin-bottom:0 !important;margin-right:0 !important;margin-left:0 !important;'
                 'padding-top:0 !important;padding-bottom:0 !important;padding-right:0 !important;'
-                'padding-left:0 !important;"/>'.format(url=self.url_for('trackopen')))
+                'padding-left:0 !important;"/>'.format(url=self.url_for('trackopen'))
+            )
         else:
             return Markup('')
 
     @classmethod
     def custom_draft_in(cls, campaign):
-        return cls.query.filter(cls.campaign == campaign,
-            cls.draft != None,  # NOQA
-            cls.__table__.c.template_text != None).options(
-                defer('created_at'), defer('updated_at'), defer('email'), defer('md5sum'),
-                defer('fullname'), defer('firstname'), defer('lastname'), defer('data'),
-                defer('opentoken'), defer('opened'), defer('rsvptoken'), defer('rsvp'),
-                defer('linkgroup'), defer('nickname')
-            ).all()
+        return (
+            cls.query.filter(
+                cls.campaign == campaign,
+                cls.draft != None,  # NOQA
+                cls.__table__.c.template_text != None,
+            )
+            .options(
+                defer('created_at'),
+                defer('updated_at'),
+                defer('email'),
+                defer('md5sum'),
+                defer('fullname'),
+                defer('firstname'),
+                defer('lastname'),
+                defer('data'),
+                defer('opentoken'),
+                defer('opened'),
+                defer('rsvptoken'),
+                defer('rsvp'),
+                defer('linkgroup'),
+                defer('nickname'),
+            )
+            .all()
+        )
 
 
 class EmailLink(BaseMixin, db.Model):
@@ -385,6 +485,16 @@ class EmailLinkRecipient(TimestampMixin, db.Model):
     __tablename__ = 'email_link_recipient'
 
     link_id = db.Column(None, db.ForeignKey('email_link.id'), primary_key=True)
-    link = db.relationship(EmailLink, backref=db.backref('link_recipients', lazy='dynamic', cascade='all, delete-orphan'))
-    recipient_id = db.Column(None, db.ForeignKey('email_recipient.id'), primary_key=True)
-    recipient = db.relationship(EmailRecipient, backref=db.backref('recipient_links', cascade='all, delete-orphan'))
+    link = db.relationship(
+        EmailLink,
+        backref=db.backref(
+            'link_recipients', lazy='dynamic', cascade='all, delete-orphan'
+        ),
+    )
+    recipient_id = db.Column(
+        None, db.ForeignKey('email_recipient.id'), primary_key=True
+    )
+    recipient = db.relationship(
+        EmailRecipient,
+        backref=db.backref('recipient_links', cascade='all, delete-orphan'),
+    )

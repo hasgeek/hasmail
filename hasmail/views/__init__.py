@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # flake8: noqa
 
-from . import login, index, campaign, email, track, diffpatch
+from . import campaign, diffpatch, email, index, login, track
