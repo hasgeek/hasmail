@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.7"
+  - '3.7'
 install:
   - pip install git+https://github.com/hasgeek/flask-babelhg/
   - pip install -r requirements.txt

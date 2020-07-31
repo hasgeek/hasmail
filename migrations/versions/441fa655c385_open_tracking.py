@@ -15,9 +15,16 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('email_recipient', sa.Column('opened_ipaddr', sa.Unicode(length=45), nullable=True))
-    op.add_column('email_recipient', sa.Column('opened_first_at', sa.DateTime(), nullable=True))
-    op.add_column('email_recipient', sa.Column('opened_last_at', sa.DateTime(), nullable=True))
+    op.add_column(
+        'email_recipient',
+        sa.Column('opened_ipaddr', sa.Unicode(length=45), nullable=True),
+    )
+    op.add_column(
+        'email_recipient', sa.Column('opened_first_at', sa.DateTime(), nullable=True)
+    )
+    op.add_column(
+        'email_recipient', sa.Column('opened_last_at', sa.DateTime(), nullable=True)
+    )
 
 
 def downgrade():

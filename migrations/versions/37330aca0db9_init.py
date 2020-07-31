@@ -12,11 +12,13 @@ down_revision = None
 
 from alembic import op
 import sqlalchemy as sa
+
 from coaster.sqlalchemy import JsonDict
 
 
 def upgrade():
-    op.create_table('user',
+    op.create_table(
+        'user',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -32,9 +34,10 @@ def upgrade():
         sa.UniqueConstraint('email'),
         sa.UniqueConstraint('lastuser_token'),
         sa.UniqueConstraint('userid'),
-        sa.UniqueConstraint('username')
-        )
-    op.create_table('email_campaign',
+        sa.UniqueConstraint('username'),
+    )
+    op.create_table(
+        'email_campaign',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -45,11 +48,12 @@ def upgrade():
         sa.Column('trackclicks', sa.Boolean(), nullable=False),
         sa.Column('name', sa.Unicode(length=250), nullable=False),
         sa.Column('title', sa.Unicode(length=250), nullable=False),
-        sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+        sa.ForeignKeyConstraint(['user_id'], ['user.id'],),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name')
-        )
-    op.create_table('email_draft',
+        sa.UniqueConstraint('name'),
+    )
+    op.create_table(
+        'email_draft',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -58,11 +62,12 @@ def upgrade():
         sa.Column('template_text', sa.UnicodeText(), nullable=False),
         sa.Column('template_html', sa.UnicodeText(), nullable=False),
         sa.Column('url_id', sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(['campaign_id'], ['email_campaign.id'], ),
+        sa.ForeignKeyConstraint(['campaign_id'], ['email_campaign.id'],),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('campaign_id', 'url_id')
-        )
-    op.create_table('email_recipient',
+        sa.UniqueConstraint('campaign_id', 'url_id'),
+    )
+    op.create_table(
+        'email_recipient',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -85,13 +90,13 @@ def upgrade():
         sa.Column('draft_id', sa.Integer(), nullable=True),
         sa.Column('linkgroup', sa.Integer(), nullable=True),
         sa.Column('url_id', sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(['campaign_id'], ['email_campaign.id'], ),
-        sa.ForeignKeyConstraint(['draft_id'], ['email_draft.id'], ),
+        sa.ForeignKeyConstraint(['campaign_id'], ['email_campaign.id'],),
+        sa.ForeignKeyConstraint(['draft_id'], ['email_draft.id'],),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('campaign_id', 'url_id'),
         sa.UniqueConstraint('opentoken'),
-        sa.UniqueConstraint('rsvptoken')
-        )
+        sa.UniqueConstraint('rsvptoken'),
+    )
 
 
 def downgrade():

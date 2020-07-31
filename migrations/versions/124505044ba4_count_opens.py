@@ -15,7 +15,12 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('email_recipient', sa.Column('opened_count', sa.Integer(), nullable=False, server_default=sa.text('0')))
+    op.add_column(
+        'email_recipient',
+        sa.Column(
+            'opened_count', sa.Integer(), nullable=False, server_default=sa.text('0')
+        ),
+    )
     op.alter_column('email_recipient', 'opened_count', server_default=None)
 
 

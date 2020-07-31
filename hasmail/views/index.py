@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
+from flask import g, redirect, render_template, url_for
 
-from flask import g, render_template, redirect, url_for
 import baseframe.forms as forms
+
 from .. import _, app, lastuser
-from ..models import db, EmailCampaign, CAMPAIGN_STATUS
+from ..models import CAMPAIGN_STATUS, EmailCampaign, db
 
 
 @app.route('/')
@@ -24,4 +24,10 @@ def dashboard():
         db.session.add(campaign)
         db.session.commit()
         return redirect(campaign.url_for(), 303)
-    return render_template('dashboard.html.jinja2', campaigns=g.user.campaigns, form=form, wstep=1, STATUS=CAMPAIGN_STATUS)
+    return render_template(
+        'dashboard.html.jinja2',
+        campaigns=g.user.campaigns,
+        form=form,
+        wstep=1,
+        STATUS=CAMPAIGN_STATUS,
+    )

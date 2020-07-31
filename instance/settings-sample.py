@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-import os
 import json
+import os
 
 #: Site title
 SITE_TITLE = os.environ.get('SITE_TITLE', 'HasGeek App')
@@ -38,8 +37,12 @@ MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'False') == 'True'
 MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False') == 'True'
 MAIL_USERNAME = os.environ.get('MAIL_USERNAME', None)
 MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', None)
-MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'HasGeek <test@example.com>')
-DEFAULT_MAIL_SENDER = os.environ.get('DEFAULT_MAIL_SENDER', MAIL_DEFAULT_SENDER)  # For compatibility with older Flask-Mail
+MAIL_DEFAULT_SENDER = os.environ.get(
+    'MAIL_DEFAULT_SENDER', 'HasGeek <test@example.com>'
+)
+DEFAULT_MAIL_SENDER = os.environ.get(
+    'DEFAULT_MAIL_SENDER', MAIL_DEFAULT_SENDER
+)  # For compatibility with older Flask-Mail
 #: Logging: recipients of error emails
 ADMINS = json.loads(os.environ.get('ADMINS', '[]'))
 #: Log file

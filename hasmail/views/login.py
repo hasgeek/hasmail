@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
+from flask import Markup, escape, flash, redirect
 
-from flask import redirect, flash, Markup, escape
-from coaster.views import get_next_url
 from baseframe.forms import render_message
+from coaster.views import get_next_url
 
 from .. import _, app, lastuser
 from ..models import db
@@ -45,6 +44,7 @@ def lastuser_error(error, error_description=None, error_uri=None):
         title=_("Error: {error}").format(error=error),
         message=Markup(
             "<p>{desc}</p><p>URI: {uri}</p>".format(
-                desc=escape(error_description or ''), uri=escape(error_uri or _('NA')))
+                desc=escape(error_description or ''), uri=escape(error_uri or _('NA'))
             )
-        )
+        ),
+    )

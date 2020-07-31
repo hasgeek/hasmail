@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-
 from diff_match_patch import diff_match_patch
-from ..models import db, EmailCampaign, EmailRecipient
+
 from .. import rq
+from ..models import EmailCampaign, EmailRecipient, db
 
 
 @rq.job('hasmail')
@@ -18,7 +17,9 @@ def patch_drafts(campaign_id):
         if recipient.draft.revision_id < draft.revision_id:
             key = (recipient.draft.revision_id, draft.revision_id)
             if key not in patches:
-                patches[key] = patcher.patch_make(recipient.draft.template, draft.template)
+                patches[key] = patcher.patch_make(
+                    recipient.draft.template, draft.template
+                )
             patched, results = patcher.patch_apply(patches[key], recipient.template)
             recipient.template = patched
             recipient.draft = draft

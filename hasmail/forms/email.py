@@ -1,35 +1,50 @@
-# -*- coding: utf-8 -*-
-
 import wtforms
+
 from baseframe.forms import Form, StylesheetField
+
 from .. import __
 
 __all__ = ['CampaignSettingsForm', 'CampaignSendForm', 'TemplateForm']
 
 
 class CampaignSettingsForm(Form):
-    title = wtforms.TextField(__("What’s this email about?"),
-        validators=[wtforms.validators.Required(__("This is required"))])
+    title = wtforms.TextField(
+        __("What’s this email about?"),
+        validators=[wtforms.validators.Required(__("This is required"))],
+    )
 
-    importfile = wtforms.FileField(__("Who do you want to send this to?"),
-        description=__("A CSV file containing names and email addresses would be most excellent"))
+    importfile = wtforms.FileField(
+        __("Who do you want to send this to?"),
+        description=__(
+            "A CSV file containing names and email addresses would be most excellent"
+        ),
+    )
 
-    stylesheet = StylesheetField(__("CSS Stylesheet"),
+    stylesheet = StylesheetField(
+        __("CSS Stylesheet"),
         description=__("These styles will be applied to your email before it is sent"),
-        validators=[wtforms.validators.Optional()])
+        validators=[wtforms.validators.Optional()],
+    )
 
     # TODO: Validate addresses
-    cc = wtforms.TextAreaField(__("CC"),
-        description=__("CCed recipients, one per line"))
+    cc = wtforms.TextAreaField(
+        __("CC"), description=__("CCed recipients, one per line")
+    )
 
     # TODO: Validate addresses
-    bcc = wtforms.TextAreaField(__("BCC"),
-        description=__("BCCed recipients, one per line"))
+    bcc = wtforms.TextAreaField(
+        __("BCC"), description=__("BCCed recipients, one per line")
+    )
 
-    trackopens = wtforms.BooleanField(__("Track opens"), default=False,
-        description=__("This will include a tiny, invisible image in your email. "
+    trackopens = wtforms.BooleanField(
+        __("Track opens"),
+        default=False,
+        description=__(
+            "This will include a tiny, invisible image in your email. "
             "Your recipient's email client may ask them if they want to view images. "
-            "Best used if your email also includes images"))
+            "Best used if your email also includes images"
+        ),
+    )
 
     # trackclicks = wtforms.BooleanField(__(u"Track clicks"), default=False,
     #     description=__(u"All links in your email will be wrapped and clicks will be tracked "
@@ -37,8 +52,10 @@ class CampaignSettingsForm(Form):
 
 
 class CampaignSendForm(Form):
-    email = wtforms.RadioField(__("Send from"),
-        description=__("What email address would you like to send this from?"))
+    email = wtforms.RadioField(
+        __("Send from"),
+        description=__("What email address would you like to send this from?"),
+    )
 
 
 class TemplateForm(Form):
