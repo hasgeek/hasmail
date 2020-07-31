@@ -20,8 +20,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'make this something random')
 #: Cache type
 CACHE_TYPE = os.environ.get('CACHE_TYPE', 'redis')
 # redis settings for RQ
-REDIS_URL = os.environ.get('RQ_REDIS_URL', 'redis://localhost:6379/0')
-RQ_REDIS_URL = REDIS_URL
+RQ_REDIS_URL = os.environ.get('RQ_REDIS_URL', 'redis://localhost:6379/0')
 #: Timezone
 TIMEZONE = os.environ.get('TIMEZONE', 'Asia/Kolkata')
 #: Lastuser server
