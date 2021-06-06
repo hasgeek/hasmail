@@ -48,7 +48,7 @@ def upgrade():
         sa.Column('trackclicks', sa.Boolean(), nullable=False),
         sa.Column('name', sa.Unicode(length=250), nullable=False),
         sa.Column('title', sa.Unicode(length=250), nullable=False),
-        sa.ForeignKeyConstraint(['user_id'], ['user.id'],),
+        sa.ForeignKeyConstraint(['user_id'], ['user.id']),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name'),
     )
@@ -62,7 +62,7 @@ def upgrade():
         sa.Column('template_text', sa.UnicodeText(), nullable=False),
         sa.Column('template_html', sa.UnicodeText(), nullable=False),
         sa.Column('url_id', sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(['campaign_id'], ['email_campaign.id'],),
+        sa.ForeignKeyConstraint(['campaign_id'], ['email_campaign.id']),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('campaign_id', 'url_id'),
     )
@@ -90,8 +90,8 @@ def upgrade():
         sa.Column('draft_id', sa.Integer(), nullable=True),
         sa.Column('linkgroup', sa.Integer(), nullable=True),
         sa.Column('url_id', sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(['campaign_id'], ['email_campaign.id'],),
-        sa.ForeignKeyConstraint(['draft_id'], ['email_draft.id'],),
+        sa.ForeignKeyConstraint(['campaign_id'], ['email_campaign.id']),
+        sa.ForeignKeyConstraint(['draft_id'], ['email_draft.id']),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('campaign_id', 'url_id'),
         sa.UniqueConstraint('opentoken'),
