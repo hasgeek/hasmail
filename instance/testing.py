@@ -13,7 +13,7 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
 #: Asset server
 ASSET_SERVER = 'https://static.hasgeek.co.in/'
 #: Secret key
-SECRET_KEY = 'make this something random'
+SECRET_KEY = 'make this something random'  # nosec
 #: Cache type
 CACHE_TYPE = 'redis'
 #: Timezone
@@ -23,7 +23,7 @@ LASTUSER_SERVER = 'https://auth.hasgeek.com/'
 #: Lastuser client id
 LASTUSER_CLIENT_ID = ''
 #: Lastuser client secret
-LASTUSER_CLIENT_SECRET = ''
+LASTUSER_CLIENT_SECRET = ''  # nosec
 #: Mail settings
 #: MAIL_FAIL_SILENTLY : default True
 #: MAIL_SERVER : default 'localhost'

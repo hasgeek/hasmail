@@ -32,8 +32,8 @@ def upgrade():
         sa.Column('updated_at', sa.DateTime(), nullable=False),
         sa.Column('link_id', sa.Integer(), nullable=False),
         sa.Column('recipient_id', sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(['link_id'], ['email_link.id'],),
-        sa.ForeignKeyConstraint(['recipient_id'], ['email_recipient.id'],),
+        sa.ForeignKeyConstraint(['link_id'], ['email_link.id']),
+        sa.ForeignKeyConstraint(['recipient_id'], ['email_recipient.id']),
         sa.PrimaryKeyConstraint('link_id', 'recipient_id'),
     )
 
