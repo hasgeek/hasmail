@@ -7,6 +7,6 @@ Flask-SQLAlchemy==2.5.1
 https://github.com/hasgeek/baseframe/archive/master.zip
 https://github.com/hasgeek/coaster/archive/master.zip
 https://github.com/hasgeek/flask-lastuser/archive/master.zip
-premailer==3.9.0
+premailer==3.10.0
 pystache==0.5.4
 short_url==1.2.2
