@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block contentpane %}
-  {%- if campaign.recipients.count() %}{% with pagination = campaign.recipients.paginate(page, 1000) %}
+  {%- if campaign.recipients.count() %}{% with pagination = campaign.recipients.paginate(page=page, per_page=1000) %}
     <table class="table table-condensed">
       <thead>
         <tr>
