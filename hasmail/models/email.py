@@ -436,8 +436,8 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
         return (
             cls.query.filter(
                 cls.campaign == campaign,
-                cls.draft != None,  # NOQA
-                cls.__table__.c.template_text != None,
+                cls.draft.isnot(None),
+                cls.__table__.c.template_text.isnot(None),
             )
             .options(
                 defer('created_at'),
