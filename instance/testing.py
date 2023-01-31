@@ -11,7 +11,7 @@ TYPEKIT_CODE = ''
 #: Database backend
 SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
 #: Asset server
-ASSET_SERVER = 'https://static.hasgeek.co.in/'
+ASSET_SERVER = None
 #: Secret key
 SECRET_KEY = 'make this something random'  # nosec
 #: Cache type
@@ -19,7 +19,7 @@ CACHE_TYPE = 'redis'
 #: Timezone
 TIMEZONE = 'Asia/Kolkata'
 #: Lastuser server
-LASTUSER_SERVER = 'https://auth.hasgeek.com/'
+LASTUSER_SERVER = 'https://hasgeek.com/'
 #: Lastuser client id
 LASTUSER_CLIENT_ID = ''
 #: Lastuser client secret

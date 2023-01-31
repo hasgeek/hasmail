@@ -130,7 +130,7 @@ class EmailCampaign(BaseNameMixin, db.Model):
     bcc = db.synonym('_bcc', descriptor=bcc)
 
     def __init__(self, **kwargs):
-        super(EmailCampaign, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         if 'name' not in kwargs:  # Use random name unless one was provided
             self.name = buid()
 
@@ -146,7 +146,7 @@ class EmailCampaign(BaseNameMixin, db.Model):
             yield EmailRecipient.query.get(rid)
 
     def permissions(self, user, inherited=None):
-        perms = super(EmailCampaign, self).permissions(user, inherited)
+        perms = super().permissions(user, inherited)
         if user is not None and user == self.user:
             perms.update(['edit', 'delete', 'send', 'new-recipient', 'report'])
         return perms
@@ -440,20 +440,20 @@ class EmailRecipient(BaseScopedIdMixin, db.Model):
                 cls.__table__.c.template_text.isnot(None),
             )
             .options(
-                defer('created_at'),
-                defer('updated_at'),
-                defer('email'),
-                defer('md5sum'),
-                defer('fullname'),
-                defer('firstname'),
-                defer('lastname'),
-                defer('data'),
-                defer('opentoken'),
-                defer('opened'),
-                defer('rsvptoken'),
-                defer('rsvp'),
-                defer('linkgroup'),
-                defer('nickname'),
+                defer(cls.created_at),
+                defer(cls.updated_at),
+                defer(cls.email),
+                defer(cls.md5sum),
+                defer(cls.fullname),
+                defer(cls.firstname),
+                defer(cls.lastname),
+                defer(cls.data),
+                defer(cls.opentoken),
+                defer(cls.opened),
+                defer(cls.rsvptoken),
+                defer(cls.rsvp),
+                defer(cls.linkgroup),
+                defer(cls.nickname),
             )
             .all()
         )
