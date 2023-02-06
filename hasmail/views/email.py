@@ -152,7 +152,6 @@ def recipient_view(campaign, recipient):
     permission='edit',
 )
 def recipient_edit(campaign, recipient):
-
     if (
         request.form.get('pk', '').isdigit()
         and int(request.form['pk']) == recipient.url_id
