@@ -1,4 +1,4 @@
-diff-match-patch==20200713
+diff-match-patch==20230430
 Flask==2.2.3
 Flask-Mail==0.9.1
 Flask-Migrate==4.0.4
