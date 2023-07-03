@@ -1,3 +1,5 @@
+"""Login support."""
+
 from flask import Markup, escape, flash, redirect
 
 from baseframe.forms import render_message
@@ -43,8 +45,7 @@ def lastuser_error(error, error_description=None, error_uri=None):
     return render_message(
         title=_("Error: {error}").format(error=error),
         message=Markup(
-            "<p>{desc}</p><p>URI: {uri}</p>".format(
-                desc=escape(error_description or ''), uri=escape(error_uri or _('NA'))
-            )
+            f"<p>{escape(error_description or '')}</p>"
+            f"<p>URI: {escape(error_uri or _('NA'))}</p>"
         ),
     )

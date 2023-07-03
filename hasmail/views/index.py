@@ -1,6 +1,8 @@
+"""Index views."""
+
 from flask import g, redirect, render_template, url_for
 
-import baseframe.forms as forms
+from baseframe import forms
 
 from .. import _, app, lastuser
 from ..models import CAMPAIGN_STATUS, EmailCampaign, db
@@ -10,13 +12,13 @@ from ..models import CAMPAIGN_STATUS, EmailCampaign, db
 def index():
     if g.user:
         return redirect(url_for('dashboard'), code=303)
-    else:
-        return render_template('index.html.jinja2')
+    return render_template('index.html.jinja2')
 
 
 @app.route('/mail', methods=('GET', 'POST'))
 @lastuser.requires_login
-# @lastuser.requires_permission('emailuser')  # To prevent public service from being abused
+# To prevent public service from being abused
+# @lastuser.requires_permission('emailuser')
 def dashboard():
     form = forms.Form()
     if form.validate_on_submit():

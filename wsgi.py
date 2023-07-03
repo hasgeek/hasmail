@@ -1,3 +1,5 @@
+"""WSGI script."""
+
 import os.path
 import sys
 

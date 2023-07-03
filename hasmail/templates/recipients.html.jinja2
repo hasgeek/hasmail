@@ -11,6 +11,7 @@
     <table class="table table-condensed">
       <thead>
         <tr>
+          {#- These headings cannot be localized, so no trans/endtrans #}
           <th>fullname</th>
           <th>email</th>
           <th>nickname</th>
@@ -79,8 +80,10 @@
     </nav>
   {%- endwith %}{%- else %}
     <p>
-      You have not specified any recipients. <a href="{{ campaign.url_for('edit') }}">Try again?</a>
-      You can also <a href="{{ campaign.url_for('template') }}">write a message now</a> and list the recipients later.
+      {% trans edit=campaign.url_for('edit'), template=campaign.url_for('template') -%}
+      You have not specified any recipients. <a href="{{ edit }}">Try again?</a>
+      You can also <a href="{{ template }}">write a message now</a> and list the recipients later.
+      {%- endtrans %}
     </p>
   {%- endif %}
 {% endblock %}

@@ -1,3 +1,5 @@
+"""RQ init script."""
+
 from urllib.parse import urlparse
 
 from hasmail import app

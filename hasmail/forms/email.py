@@ -1,6 +1,6 @@
-import baseframe.forms as forms
+"""Mailer forms."""
 
-from .. import __
+from baseframe import __, forms
 
 __all__ = ['CampaignSettingsForm', 'CampaignSendForm', 'TemplateForm']
 

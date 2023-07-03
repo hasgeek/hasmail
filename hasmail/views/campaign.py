@@ -1,5 +1,8 @@
-from io import StringIO
+"""Email campaign views."""
+
 import csv
+from email.utils import formataddr
+from io import StringIO
 
 from flask import Markup, flash, g, redirect, render_template, request, url_for
 from flask_mail import Message
@@ -222,12 +225,7 @@ def campaign_send_do(campaign_id, user_id, email):
                 if recipient.draft
                 else draft.subject,
                 sender=(user.fullname, email),
-                recipients=[
-                    '"{fullname}" <{email}>'.format(
-                        fullname=(recipient.fullname or '').replace('"', "'"),
-                        email=recipient.email,
-                    )
-                ],
+                recipients=[formataddr((recipient.fullname or '', recipient.email))],
                 body=recipient.rendered_text,
                 html=Markup(recipient.rendered_html) + recipient.openmarkup(),
                 cc=campaign.cc.split('\n'),

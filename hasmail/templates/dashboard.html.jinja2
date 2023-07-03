@@ -25,17 +25,17 @@
 {% block contentpane %}
   {%- if campaigns %}
     <p>
-      Pick an email from the sidebar or send a new one.
+      {% trans %}Pick an email from the sidebar or send a new one.{% endtrans %}
     </p>
   {%- else %}
     <p>
-      You haven’t written any mail yet.
+      {% trans %}You haven’t written any mail yet.{% endtrans %}
     </p>
   {%- endif %}
   <form method="POST">
     {{ form.hidden_tag() }}
     <p>
-      <button type="submit" class="btn btn-primary">New email</button>
+      <button type="submit" class="btn btn-primary">{% trans %}New email{% endtrans %}</button>
     </p>
   </form>
 {% endblock %}

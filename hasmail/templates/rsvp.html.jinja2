@@ -2,40 +2,40 @@
 {% block titletags %}<title>{% block title %}RSVP received{% endblock %}</title>{% endblock %}
 {%- block content %}
   {%- if status == 'Y' %}
-    <h1>Roger that!</h1>
+    <h1>{% trans %}Roger that!{% endtrans %}</h1>
     <p>
-      We have your confirmation
+      {% trans %}We have your confirmation{% endtrans %}
     </p>
   {%- elif status == 'N' %}
-    <h1>Awww!</h1>
+    <h1>{% trans %}Awww!{% endtrans %}</h1>
     <p>
-      Sorry to hear you can’t make it
+      {% trans %}Sorry to hear you can’t make it{% endtrans %}
     </p>
   {%- elif status == 'M' %}
-    <h1>Mm’kay</h1>
+    <h1>{% trans %}Mm’kay{% endtrans %}</h1>
     <p>
-      When you know better, could you update your status?
+      {% trans %}When you know better, could you update your status?{% endtrans %}
     </p>
   {%- else %}
-    <h1>Uh oh!</h1>
+    <h1>{% trans %}Uh oh!{% endtrans %}</h1>
     <p>
-      Who are you and how did you get here?
+      {% trans %}Who are you and how did you get here?{% endtrans %}
     </p>
   {% endif %}
 {% endblock %}
 
 {% block footer %}
   {%- if status == 'Y' %}
-    Change status?
-    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='N') }}">Not coming</a>
-    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='M') }}">Not sure</a>
+    {% trans %}Change status?{% endtrans %}
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='N') }}">{% trans %}Not coming{% endtrans %}</a>
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='M') }}">{% trans %}Not sure{% endtrans %}</a>
   {%- elif status == 'N' %}
-    Change status?
-    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='Y') }}">I’m coming</a>
-    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='M') }}">Not sure</a>
+    {% trans %}Change status?{% endtrans %}
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='Y') }}">{% trans %}I’m coming{% endtrans %}</a>
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='M') }}">{% trans %}Not sure{% endtrans %}</a>
   {%- elif status == 'M' %}
-    Change status?
-    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='Y') }}">I’m coming</a>
-    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='N') }}">Not coming</a>
+    {% trans %}Change status?{% endtrans %}
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='Y') }}">{% trans %}I’m coming{% endtrans %}</a>
+    <a class="btn btn-xs btn-default" href="{{ recipient.url_for('rsvp', status='N') }}">{% trans %}Not coming{% endtrans %}</a>
   {% endif %}
 {% endblock %}

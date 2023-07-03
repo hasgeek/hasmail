@@ -1,12 +1,12 @@
+"""Email view tracker."""
+
 from base64 import b64decode
 from datetime import datetime
 
-from flask import redirect, render_template, request
-
-from coaster.views import load_models
+from flask import render_template, request
 
 from .. import app
-from ..models import EmailLink, EmailLinkRecipient, EmailRecipient, db
+from ..models import EmailRecipient, db
 
 gif1x1 = b64decode(b'R0lGODlhAQABAJAAAP8AAAAAACH5BAUQAAAALAAAAAABAAEAAAICBAEAOw==')
 
@@ -42,32 +42,16 @@ def track_open_gif(opentoken):
                 'Expires': '0',
             },
         )
-    else:
-        return (
-            gif1x1,
-            404,
-            {
-                'Content-Type': 'image/gif',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0',
-            },
-        )
-
-
-@app.route('/go/<name>/<opentoken>')
-@load_models(
-    (EmailLink, {'name': 'name'}, 'link'),
-    (EmailRecipient, {'opentoken': 'opentoken'}, 'recipient'),
-)
-def track_open_link(link, recipient):
-    track_open_inner(recipient, isopen=False)
-    link_recipient = EmailLinkRecipient.query.get((link.id, recipient.id))
-    if not link_recipient:
-        link_recipient = EmailLinkRecipient(link=link, recipient=recipient)
-        db.session.add(link_recipient)
-    db.session.commit()
-    return redirect(link.url)
+    return (
+        gif1x1,
+        404,
+        {
+            'Content-Type': 'image/gif',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+        },
+    )
 
 
 @app.route('/rsvp/<rsvptoken>/<status>')

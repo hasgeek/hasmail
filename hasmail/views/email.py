@@ -1,3 +1,5 @@
+"""Mailer writer views."""
+
 from flask import jsonify, render_template, request
 
 from baseframe.forms import render_delete_sqla
@@ -176,8 +178,7 @@ def recipient_edit(campaign, recipient):
             recipient.data[field] = value or None
         db.session.commit()
         return _("Saved"), 200
-    else:
-        return _("Primary key missing, please contact the site administrator"), 400
+    return _("Primary key missing, please contact the site administrator"), 400
 
 
 @app.route('/mail/<campaign>/<recipient>/delete', methods=('GET', 'POST'))
