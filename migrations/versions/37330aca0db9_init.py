@@ -6,17 +6,16 @@ Create Date: 2014-04-05 20:42:13.939218
 
 """
 
+import sqlalchemy as sa
+from alembic import op
+from sqlalchemy.dialects import postgresql
+
 # revision identifiers, used by Alembic.
 revision = '37330aca0db9'
 down_revision = None
 
-from alembic import op
-import sqlalchemy as sa
 
-from coaster.sqlalchemy import JsonDict
-
-
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         'user',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -29,7 +28,7 @@ def upgrade():
         sa.Column('lastuser_token', sa.String(length=22), nullable=True),
         sa.Column('fullname', sa.Unicode(length=80), nullable=False),
         sa.Column('email', sa.Unicode(length=80), nullable=True),
-        sa.Column('userinfo', JsonDict(), nullable=True),
+        sa.Column('userinfo', postgresql.JSONB(), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('email'),
         sa.UniqueConstraint('lastuser_token'),
@@ -77,7 +76,7 @@ def upgrade():
         sa.Column('lastname', sa.Unicode(length=80), nullable=True),
         sa.Column('email', sa.Unicode(length=80), nullable=False),
         sa.Column('md5sum', sa.String(length=32), nullable=False),
-        sa.Column('data', JsonDict(), nullable=True),
+        sa.Column('data', postgresql.JSONB(), nullable=True),
         sa.Column('opentoken', sa.Unicode(length=44), nullable=False),
         sa.Column('opened', sa.Boolean(), nullable=False),
         sa.Column('rsvptoken', sa.Unicode(length=44), nullable=False),
@@ -99,7 +98,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table('email_recipient')
     op.drop_table('email_draft')
     op.drop_table('email_campaign')

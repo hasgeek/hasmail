@@ -1,9 +1,9 @@
-{% macro sidebar(campaign, recipients, active=none) %}
+{% macro sidebar(mailer, recipients, active=none) %}
   <div class="list-group list-group-discreet {#- nav nav-pills nav-stacked nav-pills-filling nav-point-right -#}">
-    <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('template') }}"><i class="fa fa-fw fa-pencil"></i>
+    <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ mailer.url_for('template') }}"><i class="fa fa-fw fa-pencil"></i>
       {% trans %}Write email{% endtrans %}</a>
     {%- if recipients %}{%- if recipients.count() > 1000 %}
-      <span class="list-group-item"><i class="fa fa-fw fa-users"></i> Hidden</span>
+      <span class="list-group-item"><i class="fa fa-fw fa-users"></i> {% trans %}Hidden{% endtrans %}</span>
     {%- else %}{% for r in recipients %}
       <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for() }}">
         {%- if r.rendered_text -%}
@@ -19,12 +19,12 @@
   </div>
 {% endmacro %}
 
-{% macro report_sidebar(campaign, recipients, active=none, count=0) %}
+{% macro report_sidebar(mailer, recipients, active=none, count=0) %}
   <div class="list-group list-group-discreet {#- nav nav-pills nav-stacked nav-pills-filling nav-point-right -#}">
-    <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ campaign.url_for('report') }}"><i class="fa fa-fw fa-bar-chart-o"></i>
+    <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ mailer.url_for('report') }}"><i class="fa fa-fw fa-bar-chart-o"></i>
       {% trans %}View report{% endtrans %}</a>
     {%- if recipients %}{%- if count > 1000 %}
-      <span class="list-group-item"><i class="fa fa-fw fa-users"></i> Hidden</span>
+      <span class="list-group-item"><i class="fa fa-fw fa-users"></i> {% trans %}Hidden{% endtrans %}</span>
     {%- else %}{% for r in recipients %}
       <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for('report') }}">
         {%- if r.rsvp == 'Y' -%}

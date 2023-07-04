@@ -1,7 +1,12 @@
-from io import StringIO
+"""Email mailer views."""
+
 import csv
+from email.utils import formataddr
+from io import StringIO
+from typing import Any, Dict, List, Union
 
 from flask import Markup, flash, g, redirect, render_template, request, url_for
+from flask.typing import ResponseReturnValue
 from flask_mail import Message
 
 from baseframe.forms import render_delete_sqla, render_redirect
@@ -9,28 +14,29 @@ from coaster.utils import make_name
 from coaster.views import load_model
 
 from .. import _, app, lastuser, mail, rq
-from ..forms import CampaignSendForm, CampaignSettingsForm
-from ..models import CAMPAIGN_STATUS, EmailCampaign, EmailRecipient, User, db
+from ..forms import MailerSendForm, MailerSettingsForm
+from ..models import AppenderQuery, Mailer, MailerRecipient, MailerState, User, db
 from .diffpatch import update_recipient
 
 
-def import_from_csv(campaign, reader):
+def import_from_csv(mailer: Mailer, reader: csv.DictReader) -> None:
     existing = {
+        # pylint: disable=protected-access
         r.email.lower()
-        for r in db.session.query(EmailRecipient.email)
-        .filter(EmailRecipient.campaign == campaign)
+        for r in db.session.query(MailerRecipient._email)
+        .filter(MailerRecipient.mailer == mailer)
         .all()
     }
 
-    fields = set(campaign.fields)
+    fields = set(mailer.fields)
 
     for row in reader:
         row = {make_name(key): value.strip() for key, value in row.items()}
 
         fullname = firstname = lastname = email = nickname = None
 
-        # The first column in each of the following is significant as that is the field name
-        # in the EmailRecipient model and is the name passed to the email template
+        # The first column in each of the following is significant as that is the field
+        # name in the MailerRecipient model and is the name passed to the email template
 
         # Now look for email (mandatory), first name, last name and full name
         for field in [
@@ -75,8 +81,8 @@ def import_from_csv(campaign, reader):
                 break
 
         if email.lower() not in existing:
-            recipient = EmailRecipient(
-                campaign=campaign,
+            recipient = MailerRecipient(
+                mailer=mailer,
                 email=email.lower(),
                 fullname=fullname,
                 firstname=firstname,
@@ -90,85 +96,81 @@ def import_from_csv(campaign, reader):
             db.session.add(recipient)
             existing.add(recipient.email.lower())
 
-    campaign.fields = fields
+    mailer.fields = fields
 
 
-@app.route('/mail/<campaign>', methods=('GET', 'POST'))
+@app.route('/mail/<mailer>', methods=('GET', 'POST'))
 @lastuser.requires_login
-@load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit')
-def campaign_view(campaign):
-    form = CampaignSettingsForm(obj=campaign)
+@load_model(Mailer, {'name': 'mailer'}, 'mailer', permission='edit')
+def mailer_view(mailer: Mailer) -> ResponseReturnValue:
+    form = MailerSettingsForm(obj=mailer)
     if form.validate_on_submit():
-        form.populate_obj(campaign)
+        form.populate_obj(mailer)
         if 'importfile' in request.files:
             fileob = request.files['importfile']
             if fileob.filename != '':
                 data = StringIO(fileob.read().decode())
                 reader = csv.DictReader(data)
-                import_from_csv(campaign, reader)
+                import_from_csv(mailer, reader)
         db.session.commit()
-        return render_redirect(campaign.url_for('recipients'), code=303)
-    return render_template(
-        'campaign.html.jinja2', campaign=campaign, form=form, wstep=2
-    )
+        return render_redirect(mailer.url_for('recipients'), code=303)
+    return render_template('mailer.html.jinja2', mailer=mailer, form=form, wstep=2)
 
 
-@app.route('/mail/<campaign>/delete', methods=('GET', 'POST'))
+@app.route('/mail/<mailer>/delete', methods=('GET', 'POST'))
 @lastuser.requires_login
-@load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='delete')
-def campaign_delete(campaign):
+@load_model(Mailer, {'name': 'mailer'}, 'mailer', permission='delete')
+def mailer_delete(mailer: Mailer) -> ResponseReturnValue:
     return render_delete_sqla(
-        campaign,
+        mailer,
         db,
         title=_("Confirm delete"),
         message=_(
-            "Remove campaign ‘{title}’? This will delete ALL data related to the campaign. There is no undo."
-        ).format(title=campaign.title),
-        success=_(
-            "You have deleted the ‘{title}’ campaign and ALL related data"
-        ).format(title=campaign.title),
+            "Remove mailer ‘{title}’? This will delete ALL data related to the"
+            " mailer. There is no undo."
+        ).format(title=mailer.title),
+        success=_("You have deleted the ‘{title}’ mailer and ALL related data").format(
+            title=mailer.title
+        ),
         next=url_for('index'),
     )
 
 
-@app.route('/mail/<campaign>/recipients', defaults={'page': 1})
-@app.route('/mail/<campaign>/recipients/<int:page>')
+@app.route('/mail/<mailer>/recipients', defaults={'page': 1})
+@app.route('/mail/<mailer>/recipients/<int:page>')
 @lastuser.requires_login
-@load_model(
-    EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit', kwargs=True
-)
-def campaign_recipients(campaign, kwargs):
+@load_model(Mailer, {'name': 'mailer'}, 'mailer', permission='edit', kwargs=True)
+def mailer_recipients(mailer: Mailer, kwargs: Dict[str, Any]) -> ResponseReturnValue:
     page = kwargs.get('page', 1)
-    return render_template(
-        'recipients.html.jinja2', campaign=campaign, page=page, wstep=3
-    )
+    return render_template('recipients.html.jinja2', mailer=mailer, page=page, wstep=3)
 
 
-@app.route('/mail/<campaign>/send', methods=('GET', 'POST'))
+@app.route('/mail/<mailer>/send', methods=('GET', 'POST'))
 @lastuser.requires_login
-@load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='send')
-def campaign_send(campaign):
-    form = CampaignSendForm()
+@load_model(Mailer, {'name': 'mailer'}, 'mailer', permission='send')
+def mailer_send(mailer: Mailer) -> ResponseReturnValue:
+    form = MailerSendForm()
     form.email.choices = [(e, e) for e in lastuser.user_emails(g.user)]
     if form.validate_on_submit():
-        campaign.status = CAMPAIGN_STATUS.QUEUED
+        mailer.status = MailerState.QUEUED
         db.session.commit()
 
-        campaign_send_do.queue(campaign.id, g.user.id, form.email.data, timeout=86400)
+        mailer_send_do.queue(mailer.id, g.user.id, form.email.data, timeout=86400)
         flash(_("Your email has been queued for delivery"), 'success')
-        return redirect(campaign.url_for('report'), code=303)
-    return render_template('send.html.jinja2', campaign=campaign, form=form, wstep=5)
+        return redirect(mailer.url_for('report'), code=303)
+    return render_template('send.html.jinja2', mailer=mailer, form=form, wstep=5)
 
 
-@app.route('/mail/<campaign>/report')
+@app.route('/mail/<mailer>/report')
 @lastuser.requires_login
-@load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='report')
-def campaign_report(campaign):
-    count = campaign.recipients.count()
+@load_model(Mailer, {'name': 'mailer'}, 'mailer', permission='report')
+def mailer_report(mailer: Mailer) -> ResponseReturnValue:
+    recipients: Union[List[MailerRecipient], AppenderQuery[MailerRecipient]]
+    count = mailer.recipients.count()
     if count > 1000:
-        recipients = campaign.recipients
+        recipients = mailer.recipients
     else:
-        recipients = campaign.recipients.all()
+        recipients = mailer.recipients.all()
         recipients.sort(
             key=lambda r: (
                 (r.rsvp == 'Y' and 1)
@@ -181,7 +183,7 @@ def campaign_report(campaign):
         )
     return render_template(
         'report.html.jinja2',
-        campaign=campaign,
+        mailer=mailer,
         recipients=recipients,
         recipient=None,
         count=count,
@@ -190,56 +192,52 @@ def campaign_report(campaign):
 
 
 @rq.job('hasmail')
-def campaign_send_do(campaign_id, user_id, email):
+def mailer_send_do(mailer_id: int, user_id: int, email: str) -> None:
     ctx = None
     if not request:
         ctx = app.test_request_context()
         ctx.push()
-    campaign = EmailCampaign.query.get(campaign_id)
-    campaign.status = CAMPAIGN_STATUS.SENDING
-    draft = campaign.draft()
+    mailer = Mailer.query.get(mailer_id)
+    if mailer is None:
+        return
+    mailer.status = MailerState.SENDING
+    draft = mailer.draft()
+    if draft is None:
+        return
     user = User.query.get(user_id)
+    if user is None:
+        return
 
     # User wants to send. Perform all necessary activities:
-    # 1. Wrap links if click tracking is enabled, in the master template
-    # TODO
-    # 2. Update all drafts
-    for recipient in campaign.recipients_iter():
+    # 1. Update all drafts
+    for recipient in mailer.recipients_iter():
         if not recipient.rendered_text:
             update_recipient(recipient)
-            # 3. Wrap links in custom templates
-            # TODO
-            # 4. Generate rendering per recipient and mark recipient as sent
-            recipient.rendered_text = recipient.get_rendered(draft)
-            recipient.rendered_html = recipient.get_preview(draft)
-            # 5. Send message
+            # 2. Generate rendering per recipient and mark recipient as sent
+            recipient.rendered_text = recipient.get_rendered()
+            recipient.rendered_html = recipient.get_preview()
+            # 3. Send message
             msg = Message(
                 subject=(
                     recipient.subject
                     if recipient.subject is not None
                     else draft.subject
                 )
-                if recipient.draft
+                if recipient.custom_draft
                 else draft.subject,
-                sender=(user.fullname, email),
-                recipients=[
-                    '"{fullname}" <{email}>'.format(
-                        fullname=(recipient.fullname or '').replace('"', "'"),
-                        email=recipient.email,
-                    )
-                ],
+                sender=formataddr((user.fullname, email)),
+                recipients=[formataddr((recipient.fullname or '', recipient.email))],
                 body=recipient.rendered_text,
                 html=Markup(recipient.rendered_html) + recipient.openmarkup(),
-                cc=campaign.cc.split('\n'),
-                bcc=campaign.bcc.split('\n'),
+                cc=mailer.cc.split('\n'),
+                bcc=mailer.bcc.split('\n'),
             )
             mail.send(msg)
-            # print msg.recipients
-            # 6. Commit after each recipient
+            # 4. Commit after each recipient
             db.session.commit()
 
-    # Done!
-    campaign.status = CAMPAIGN_STATUS.SENT
+    # 5. Done!
+    mailer.status = MailerState.SENT
     db.session.commit()
 
     if ctx:

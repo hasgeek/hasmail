@@ -1,12 +1,12 @@
 {% extends "twopane.html.jinja2" %}
 {% from "macros.html.jinja2" import sidebar %}
 {% from "baseframe/forms.html.jinja2" import renderform %}
-{% block title %}{{ campaign.title }}{% endblock %}
+{% block title %}{{ mailer.title }}{% endblock %}
 
 {# {% block listpane %}
-  {{ sidebar(campaign, campaign.recipients, 's') }}
+  {{ sidebar(mailer, mailer.recipients, 's') }}
 {% endblock %} #}
 
 {% block contentpane %}
-  {{ renderform(form, 'settings', "Next", multipart=True, style='vert') }}
+  {{ renderform(form, 'settings', gettext("Next"), multipart=True, style='vert') }}
 {% endblock %}

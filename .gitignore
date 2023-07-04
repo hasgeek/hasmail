@@ -11,6 +11,7 @@ test.db
 docs/_build
 build/
 dist/
+hasmail/static/gen/
 .webassets-cache
 nosetests.xml
 .sass-cache

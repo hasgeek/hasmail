@@ -6,15 +6,15 @@ Create Date: 2016-04-12 18:39:55.871861
 
 """
 
+import sqlalchemy as sa
+from alembic import op
+
 # revision identifiers, used by Alembic.
 revision = '405e179cec7d'
 down_revision = '28cbf4bd7fb6'
 
-from alembic import op
-import sqlalchemy as sa
 
-
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         'user',
         sa.Column('status', sa.Integer(), nullable=False, server_default=sa.text('0')),
@@ -22,5 +22,5 @@ def upgrade():
     op.alter_column('user', 'status', server_default=None)
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column('user', 'status')

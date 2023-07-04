@@ -6,15 +6,15 @@ Create Date: 2014-07-08 02:19:50.325405
 
 """
 
+import sqlalchemy as sa
+from alembic import op
+
 # revision identifiers, used by Alembic.
 revision = '32de3aa6b4f4'
 down_revision = '441fa655c385'
 
-from alembic import op
-import sqlalchemy as sa
 
-
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         'email_link',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -38,7 +38,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table('email_link_recipient')
     op.drop_index('ix_email_link_url')
     op.drop_table('email_link')

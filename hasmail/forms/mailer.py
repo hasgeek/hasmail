@@ -1,13 +1,16 @@
-import baseframe.forms as forms
+"""Mailer forms."""
 
-from .. import __
+from baseframe import __, forms
 
-__all__ = ['CampaignSettingsForm', 'CampaignSendForm', 'TemplateForm']
+__all__ = ['MailerSettingsForm', 'MailerSendForm', 'MailerTemplateForm']
 
 
-class CampaignSettingsForm(forms.Form):
+class MailerSettingsForm(forms.Form):
+    """Mailer settings form."""
+
     title = forms.StringField(
         __("What’s this email about?"),
+        description=__("A private description for your own reference"),
         validators=[forms.validators.DataRequired(__("This is required"))],
     )
 
@@ -42,19 +45,19 @@ class CampaignSettingsForm(forms.Form):
         ),
     )
 
-    # trackclicks = forms.BooleanField(__(u"Track clicks"), default=False,
-    #     description=__(u"All links in your email will be wrapped and clicks will be tracked "
-    #         u"so you know which recipient opened which links"))
 
+class MailerSendForm(forms.Form):
+    """Mailer send form."""
 
-class CampaignSendForm(forms.Form):
     email = forms.RadioField(
         __("Send from"),
         description=__("What email address would you like to send this from?"),
     )
 
 
-class TemplateForm(forms.Form):
+class MailerTemplateForm(forms.Form):
+    """Mailer template edit form."""
+
     revision_id = forms.HiddenField(__("Revision id"))
     subject = forms.StringField(__("Subject"))
     # Don't use MarkdownField since the only thing it does is adding the
