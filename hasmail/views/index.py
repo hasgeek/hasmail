@@ -6,7 +6,7 @@ from flask.typing import ResponseReturnValue
 from baseframe import forms
 
 from .. import _, app, lastuser
-from ..models import EmailCampaign, EmailCampaignState, db
+from ..models import Mailer, MailerState, db
 
 
 @app.route('/')
@@ -23,14 +23,14 @@ def index() -> ResponseReturnValue:
 def dashboard() -> ResponseReturnValue:
     form = forms.Form()
     if form.validate_on_submit():
-        campaign = EmailCampaign(title=_("Untitled Email"), user=g.user)
-        db.session.add(campaign)
+        mailer = Mailer(title=_("Untitled Email"), user=g.user)
+        db.session.add(mailer)
         db.session.commit()
-        return redirect(campaign.url_for(), 303)
+        return redirect(mailer.url_for(), 303)
     return render_template(
         'dashboard.html.jinja2',
         campaigns=g.user.campaigns,
         form=form,
         wstep=1,
-        STATUS=EmailCampaignState,
+        STATUS=MailerState,
     )

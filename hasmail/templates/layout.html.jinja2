@@ -10,36 +10,36 @@
     <ul class="steps">
       <li {%- if wstep > 1 %} class="complete" {%- elif wstep == 1 %} class="active" {%- endif %}><a href="{{ url_for('dashboard') }}">{% trans %}Start{% endtrans %} <span class="chevron"></span></a></li>
       <li {%- if wstep > 2 %} class="complete" {%- elif wstep == 2 %} class="active" {%- endif %}>
-        {%- if campaign %}
-          <a href="{{ campaign.url_for() }}">{% trans %}Details{% endtrans %} <span class="chevron"></span></a>
+        {%- if mailer %}
+          <a href="{{ mailer.url_for() }}">{% trans %}Details{% endtrans %} <span class="chevron"></span></a>
         {%- else %}
           {% trans %}Details{% endtrans %} <span class="chevron"></span>
         {%- endif -%}
       </li>
       <li {%- if wstep > 3 %} class="complete" {%- elif wstep == 3 %} class="active" {%- endif %}>
-        {%- if campaign %}
-          <a href="{{ campaign.url_for('recipients') }}">{% trans %}Recipients{% endtrans %} <span class="chevron"></span></a>
+        {%- if mailer %}
+          <a href="{{ mailer.url_for('recipients') }}">{% trans %}Recipients{% endtrans %} <span class="chevron"></span></a>
         {%- else %}
           {% trans %}Recipients{% endtrans %} <span class="chevron"></span>
         {%- endif -%}
       </li>
       <li {%- if wstep > 4 %} class="complete" {%- elif wstep == 4 %} class="active" {%- endif %}>
-        {%- if campaign %}
-          <a href="{{ campaign.url_for('template') }}">{% trans %}Write{% endtrans %} <span class="chevron"></span></a>
+        {%- if mailer %}
+          <a href="{{ mailer.url_for('template') }}">{% trans %}Write{% endtrans %} <span class="chevron"></span></a>
         {%- else %}
           {% trans %}Write{% endtrans %} <span class="chevron"></span>
         {%- endif -%}
       </li>
       <li {%- if wstep > 5 %} class="complete" {%- elif wstep == 5 %} class="active" {%- endif %}>
-        {%- if campaign %}
-          <a href="{{ campaign.url_for('send') }}">{% trans %}Send{% endtrans %} <span class="chevron"></span></a>
+        {%- if mailer %}
+          <a href="{{ mailer.url_for('send') }}">{% trans %}Send{% endtrans %} <span class="chevron"></span></a>
         {%- else %}
           {% trans %}Send{% endtrans %} <span class="chevron"></span>
         {%- endif -%}
       </li>
       <li {%- if wstep > 6 %} class="complete" {%- elif wstep == 6 %} class="active" {%- endif %}>
-        {%- if campaign %}
-          <a href="{{ campaign.url_for('report') }}">{% trans %}Report{% endtrans %} <span class="chevron"></span></a>
+        {%- if mailer %}
+          <a href="{{ mailer.url_for('report') }}">{% trans %}Report{% endtrans %} <span class="chevron"></span></a>
         {%- else %}
           {% trans %}Report{% endtrans %} <span class="chevron"></span>
         {%- endif -%}

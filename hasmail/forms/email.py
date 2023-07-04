@@ -2,10 +2,12 @@
 
 from baseframe import __, forms
 
-__all__ = ['CampaignSettingsForm', 'CampaignSendForm', 'TemplateForm']
+__all__ = ['MailerSettingsForm', 'MailerSendForm', 'MailerTemplateForm']
 
 
-class CampaignSettingsForm(forms.Form):
+class MailerSettingsForm(forms.Form):
+    """Mailer settings form."""
+
     title = forms.StringField(
         __("What’s this email about?"),
         description=__("A private description for your own reference"),
@@ -44,14 +46,18 @@ class CampaignSettingsForm(forms.Form):
     )
 
 
-class CampaignSendForm(forms.Form):
+class MailerSendForm(forms.Form):
+    """Mailer send form."""
+
     email = forms.RadioField(
         __("Send from"),
         description=__("What email address would you like to send this from?"),
     )
 
 
-class TemplateForm(forms.Form):
+class MailerTemplateForm(forms.Form):
+    """Mailer template edit form."""
+
     revision_id = forms.HiddenField(__("Revision id"))
     subject = forms.StringField(__("Subject"))
     # Don't use MarkdownField since the only thing it does is adding the

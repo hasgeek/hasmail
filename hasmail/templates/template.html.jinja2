@@ -1,9 +1,9 @@
 {% extends "twopane.html.jinja2" %}
 {% from "macros.html.jinja2" import sidebar, template_form, template_editor %}
-{% block title %}{{ campaign.title }}{% endblock %}
+{% block title %}{{ mailer.title }}{% endblock %}
 
 {% block listpane %}
-  {{ sidebar(campaign, campaign.recipients, 't') }}
+  {{ sidebar(mailer, mailer.recipients, 't') }}
 {% endblock %}
 
 {% block headline %}{% endblock %}

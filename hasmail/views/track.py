@@ -7,12 +7,12 @@ from flask import render_template, request
 from flask.typing import ResponseReturnValue
 
 from .. import app
-from ..models import EmailRecipient, db
+from ..models import MailerRecipient, db
 
 gif1x1 = b64decode(b'R0lGODlhAQABAJAAAP8AAAAAACH5BAUQAAAALAAAAAABAAEAAAICBAEAOw==')
 
 
-def track_open_inner(recipient: EmailRecipient, isopen: bool = True) -> None:
+def track_open_inner(recipient: MailerRecipient, isopen: bool = True) -> None:
     recipient.opened = True
     now = datetime.utcnow()
     if not recipient.opened_ipaddr:
@@ -21,7 +21,7 @@ def track_open_inner(recipient: EmailRecipient, isopen: bool = True) -> None:
         recipient.opened_first_at = now
     if isopen:
         recipient.opened_last_at = now
-        recipient.opened_count = EmailRecipient.opened_count + 1
+        recipient.opened_count = MailerRecipient.opened_count + 1
     else:
         if not recipient.opened_last_at:
             recipient.opened_last_at = now
@@ -29,7 +29,7 @@ def track_open_inner(recipient: EmailRecipient, isopen: bool = True) -> None:
 
 @app.route('/open/<opentoken>.gif')
 def track_open_gif(opentoken) -> ResponseReturnValue:
-    recipient = EmailRecipient.query.filter_by(opentoken=opentoken).first()
+    recipient = MailerRecipient.query.filter_by(opentoken=opentoken).first()
     if recipient is not None:
         track_open_inner(recipient, isopen=True)
         db.session.commit()
@@ -57,7 +57,7 @@ def track_open_gif(opentoken) -> ResponseReturnValue:
 
 @app.route('/rsvp/<rsvptoken>/<status>')
 def rsvp(rsvptoken, status) -> ResponseReturnValue:
-    recipient = EmailRecipient.query.filter_by(rsvptoken=rsvptoken).first_or_404()
+    recipient = MailerRecipient.query.filter_by(rsvptoken=rsvptoken).first_or_404()
     status = status.upper()
     if status in ('Y', 'N', 'M'):
         recipient.rsvp = status

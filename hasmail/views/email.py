@@ -9,17 +9,17 @@ from baseframe.forms import render_delete_sqla
 from coaster.views import load_model, load_models
 
 from .. import _, app, lastuser
-from ..forms import TemplateForm
-from ..models import EmailCampaign, EmailDraft, EmailRecipient, db
+from ..forms import MailerTemplateForm
+from ..models import Mailer, MailerDraft, MailerRecipient, db
 from .diffpatch import update_recipient
 
 
-@app.route('/mail/<campaign>/write', methods=('GET', 'POST'))
+@app.route('/mail/<mailer>/write', methods=('GET', 'POST'))
 @lastuser.requires_login
-@load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit')
-def campaign_template(campaign: EmailCampaign) -> ResponseReturnValue:
-    draft = campaign.draft()
-    form = TemplateForm(obj=draft)
+@load_model(Mailer, {'name': 'mailer'}, 'mailer', permission='edit')
+def mailer_template(mailer: Mailer) -> ResponseReturnValue:
+    draft = mailer.draft()
+    form = MailerTemplateForm(obj=draft)
     if form.validate_on_submit():
         # Make a new draft if we're editing an existing draft or there is no existing
         # draft. But don't make new drafts on page reload with no content change
@@ -30,7 +30,7 @@ def campaign_template(campaign: EmailCampaign) -> ResponseReturnValue:
                 or draft.template != form.template.data
             )
         ):
-            draft = EmailDraft(campaign=campaign)
+            draft = MailerDraft(mailer=mailer)
             db.session.add(draft)
         draft.subject = form.subject.data
         draft.template = form.template.data
@@ -40,8 +40,8 @@ def campaign_template(campaign: EmailCampaign) -> ResponseReturnValue:
         # a background process, or because it's simply multi-threading with race
         # conditions. Foreground processing for now:
 
-        # patch_drafts.queue(campaign.id)
-        # patch_drafts(campaign.id)
+        # patch_drafts.queue(mailer.id)
+        # patch_drafts(mailer.id)
 
         # Update: we now patch on loading the recipient's draft
 
@@ -54,29 +54,29 @@ def campaign_template(campaign: EmailCampaign) -> ResponseReturnValue:
                 'form_nonce': form.form_nonce.default(),
             }
         )
-    return render_template(
-        'template.html.jinja2', campaign=campaign, wstep=4, form=form
-    )
+    return render_template('template.html.jinja2', mailer=mailer, wstep=4, form=form)
 
 
-@app.route('/mail/<campaign>/<int:recipient>', methods=('GET', 'POST'))
+@app.route('/mail/<mailer>/<int:recipient>', methods=('GET', 'POST'))
 @lastuser.requires_login
 @load_models(
-    (EmailCampaign, {'name': 'campaign'}, 'campaign'),
-    (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
+    (Mailer, {'name': 'mailer'}, 'mailer'),
+    (
+        MailerRecipient,
+        {'mailer': 'mailer', 'url_id': 'recipient'},
+        'recipient',
+    ),
     permission='edit',
 )
-def recipient_view(
-    campaign: EmailCampaign, recipient: EmailRecipient
-) -> ResponseReturnValue:
-    draft = campaign.draft()
+def recipient_view(mailer: Mailer, recipient: MailerRecipient) -> ResponseReturnValue:
+    draft = mailer.draft()
     already_sent = bool(recipient.rendered_text)
 
     if recipient.custom_draft:
         # This user has a custom template, use it
         if not already_sent:
             update_recipient(recipient)
-        form = TemplateForm(obj=recipient)
+        form = MailerTemplateForm(obj=recipient)
         if request.method == 'GET':
             if not recipient.subject:
                 form.subject.data = draft.subject if draft else ''
@@ -84,17 +84,17 @@ def recipient_view(
                 form.template.data = draft.template if draft else ''
     else:
         # Use the standard template
-        form = TemplateForm(obj=draft)
+        form = MailerTemplateForm(obj=draft)
     if form.validate_on_submit():
         if not draft:
             # Make a blank draft for reference
-            draft = EmailDraft(campaign=campaign)
+            draft = MailerDraft(mailer=mailer)
             db.session.add(draft)
-            db.session.flush()  # Ensure campaign.draft() == draft
+            db.session.flush()  # Ensure mailer.draft() == draft
 
         # Discard updates if email was already sent to this recipient
         if already_sent:
-            ob: Union[EmailRecipient, EmailDraft] = (
+            ob: Union[MailerRecipient, MailerDraft] = (
                 recipient if recipient.custom_draft else draft
             )
             return jsonify(
@@ -138,7 +138,7 @@ def recipient_view(
         )
     return render_template(
         'recipient.html.jinja2',
-        campaign=campaign,
+        mailer=mailer,
         recipient=recipient,
         wstep=4,
         form=form,
@@ -146,16 +146,18 @@ def recipient_view(
     )
 
 
-@app.route('/mail/<campaign>/<recipient>/edit', methods=('POST',))
+@app.route('/mail/<mailer>/<recipient>/edit', methods=('POST',))
 @lastuser.requires_login
 @load_models(
-    (EmailCampaign, {'name': 'campaign'}, 'campaign'),
-    (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
+    (Mailer, {'name': 'mailer'}, 'mailer'),
+    (
+        MailerRecipient,
+        {'mailer': 'mailer', 'url_id': 'recipient'},
+        'recipient',
+    ),
     permission='edit',
 )
-def recipient_edit(
-    campaign: EmailCampaign, recipient: EmailRecipient
-) -> ResponseReturnValue:
+def recipient_edit(mailer: Mailer, recipient: MailerRecipient) -> ResponseReturnValue:
     if (
         request.form.get('pk', '').isdigit()
         and int(request.form['pk']) == recipient.url_id
@@ -185,16 +187,18 @@ def recipient_edit(
     return _("Primary key missing, please contact the site administrator"), 400
 
 
-@app.route('/mail/<campaign>/<recipient>/delete', methods=('GET', 'POST'))
+@app.route('/mail/<mailer>/<recipient>/delete', methods=('GET', 'POST'))
 @lastuser.requires_login
 @load_models(
-    (EmailCampaign, {'name': 'campaign'}, 'campaign'),
-    (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
+    (Mailer, {'name': 'mailer'}, 'mailer'),
+    (
+        MailerRecipient,
+        {'mailer': 'mailer', 'url_id': 'recipient'},
+        'recipient',
+    ),
     permission='delete',
 )
-def recipient_delete(
-    campaign: EmailCampaign, recipient: EmailRecipient
-) -> ResponseReturnValue:
+def recipient_delete(mailer: Mailer, recipient: MailerRecipient) -> ResponseReturnValue:
     return render_delete_sqla(
         recipient,
         db,
@@ -205,20 +209,22 @@ def recipient_delete(
         success=_("You have removed recipient ‘{fullname}’").format(
             fullname=recipient.fullname
         ),
-        next=campaign.url_for('recipients'),
+        next=mailer.url_for('recipients'),
     )
 
 
-@app.route('/mail/<campaign>/<recipient>/report')
+@app.route('/mail/<mailer>/<recipient>/report')
 @lastuser.requires_login
 @load_models(
-    (EmailCampaign, {'name': 'campaign'}, 'campaign'),
-    (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
+    (Mailer, {'name': 'mailer'}, 'mailer'),
+    (
+        MailerRecipient,
+        {'mailer': 'mailer', 'url_id': 'recipient'},
+        'recipient',
+    ),
     permission='report',
 )
-def recipient_report(
-    campaign: EmailCampaign, recipient: EmailRecipient
-) -> ResponseReturnValue:
+def recipient_report(mailer: Mailer, recipient: MailerRecipient) -> ResponseReturnValue:
     return render_template(
-        'report.html.jinja2', campaign=campaign, recipient=recipient, wstep=6
+        'report.html.jinja2', mailer=mailer, recipient=recipient, wstep=6
     )
