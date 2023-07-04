@@ -146,7 +146,7 @@ def recipient_view(mailer: Mailer, recipient: MailerRecipient) -> ResponseReturn
     )
 
 
-@app.route('/mail/<mailer>/<recipient>/edit', methods=('POST',))
+@app.route('/mail/<mailer>/<int:recipient>/edit', methods=('POST',))
 @lastuser.requires_login
 @load_models(
     (Mailer, {'name': 'mailer'}, 'mailer'),
@@ -187,7 +187,7 @@ def recipient_edit(mailer: Mailer, recipient: MailerRecipient) -> ResponseReturn
     return _("Primary key missing, please contact the site administrator"), 400
 
 
-@app.route('/mail/<mailer>/<recipient>/delete', methods=('GET', 'POST'))
+@app.route('/mail/<mailer>/<int:recipient>/delete', methods=('GET', 'POST'))
 @lastuser.requires_login
 @load_models(
     (Mailer, {'name': 'mailer'}, 'mailer'),
@@ -213,7 +213,7 @@ def recipient_delete(mailer: Mailer, recipient: MailerRecipient) -> ResponseRetu
     )
 
 
-@app.route('/mail/<mailer>/<recipient>/report')
+@app.route('/mail/<mailer>/<int:recipient>/report')
 @lastuser.requires_login
 @load_models(
     (Mailer, {'name': 'mailer'}, 'mailer'),

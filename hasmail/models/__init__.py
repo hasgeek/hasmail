@@ -34,4 +34,4 @@ db = SQLAlchemy(query_class=Query, metadata=Model.metadata)  # type: ignore[arg-
 Model.init_flask_sqlalchemy(db)
 
 
-from .email import *
+from .mailer import *
