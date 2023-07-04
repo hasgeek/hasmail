@@ -18,7 +18,7 @@ def patch_drafts(campaign_id: int) -> None:
     patches = {}  # (old draft, new draft): patches
 
     for recipient in EmailRecipient.custom_draft_in(campaign):
-        if recipient.draft.revision_id < draft.revision_id:
+        if recipient.draft and recipient.draft.revision_id < draft.revision_id:
             key = (recipient.draft.revision_id, draft.revision_id)
             if key not in patches:
                 patches[key] = patcher.patch_make(
@@ -35,7 +35,11 @@ def update_recipient(recipient: EmailRecipient) -> None:
     draft = campaign.draft()
     if draft is None:
         return
-    if recipient.template is not None and recipient.draft != draft:
+    if (
+        recipient.template is not None
+        and recipient.draft is not None
+        and recipient.draft != draft
+    ):
         patcher = diff_match_patch()
         patch = patcher.patch_make(recipient.draft.template, draft.template)
         patched, _results = patcher.patch_apply(patch, recipient.template)

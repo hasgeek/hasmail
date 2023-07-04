@@ -1,6 +1,9 @@
 """Mailer writer views."""
 
+from typing import Union
+
 from flask import jsonify, render_template, request
+from flask.typing import ResponseReturnValue
 
 from baseframe.forms import render_delete_sqla
 from coaster.views import load_model, load_models
@@ -13,15 +16,13 @@ from .diffpatch import update_recipient
 
 @app.route('/mail/<campaign>/write', methods=('GET', 'POST'))
 @lastuser.requires_login
-@load_model(
-    EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit', kwargs=True
-)
-def campaign_template(campaign, kwargs=None):
+@load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit')
+def campaign_template(campaign: EmailCampaign) -> ResponseReturnValue:
     draft = campaign.draft()
     form = TemplateForm(obj=draft)
     if form.validate_on_submit():
-        # Make a new draft if we're editing an existing draft or there is no existing draft.
-        # But don't make new drafts on page reload with no content change
+        # Make a new draft if we're editing an existing draft or there is no existing
+        # draft. But don't make new drafts on page reload with no content change
         if not draft or (
             draft.revision_id == form.revision_id.data
             and (
@@ -36,8 +37,8 @@ def campaign_template(campaign, kwargs=None):
         db.session.commit()
 
         # The background job approach isn't reliable. We don't know if it's because it's
-        # a background process, or because it's simply multi-threading with race conditions.
-        # Foreground processing for now:
+        # a background process, or because it's simply multi-threading with race
+        # conditions. Foreground processing for now:
 
         # patch_drafts.queue(campaign.id)
         # patch_drafts(campaign.id)
@@ -65,11 +66,13 @@ def campaign_template(campaign, kwargs=None):
     (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
     permission='edit',
 )
-def recipient_view(campaign, recipient):
+def recipient_view(
+    campaign: EmailCampaign, recipient: EmailRecipient
+) -> ResponseReturnValue:
     draft = campaign.draft()
     already_sent = bool(recipient.rendered_text)
 
-    if recipient.draft:
+    if recipient.custom_draft:
         # This user has a custom template, use it
         if not already_sent:
             update_recipient(recipient)
@@ -83,25 +86,25 @@ def recipient_view(campaign, recipient):
         # Use the standard template
         form = TemplateForm(obj=draft)
     if form.validate_on_submit():
-        # Discard updates if email was already sent to this recipient
-        if already_sent:
-            if recipient.draft:
-                ob = recipient
-            else:
-                ob = draft
-            return jsonify(
-                {
-                    'template': ob.template,
-                    'preview': recipient.get_preview(draft),
-                    'subject': ob.subject,
-                    'revision_id': ob.revision_id,
-                }
-            )
-
         if not draft:
             # Make a blank draft for reference
             draft = EmailDraft(campaign=campaign)
             db.session.add(draft)
+            db.session.flush()  # Ensure campaign.draft() == draft
+
+        # Discard updates if email was already sent to this recipient
+        if already_sent:
+            ob: Union[EmailRecipient, EmailDraft] = (
+                recipient if recipient.custom_draft else draft
+            )
+            return jsonify(
+                {
+                    'template': ob.template,
+                    'preview': recipient.get_preview(),
+                    'subject': ob.subject,
+                    'revision_id': ob.revision_id,
+                }
+            )
 
         # Check if the subject or template differs from the draft. If so,
         # customise it for this recipient.
@@ -122,14 +125,11 @@ def recipient_view(campaign, recipient):
 
         db.session.commit()
 
-        if recipient.draft:
-            ob = recipient
-        else:
-            ob = draft
+        ob = recipient if recipient.custom_draft else draft
         return jsonify(
             {
                 'template': ob.template,
-                'preview': recipient.get_preview(draft),
+                'preview': recipient.get_preview(),
                 'subject': recipient.subject
                 if recipient.subject is not None
                 else draft.subject,
@@ -153,7 +153,9 @@ def recipient_view(campaign, recipient):
     (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
     permission='edit',
 )
-def recipient_edit(campaign, recipient):
+def recipient_edit(
+    campaign: EmailCampaign, recipient: EmailRecipient
+) -> ResponseReturnValue:
     if (
         request.form.get('pk', '').isdigit()
         and int(request.form['pk']) == recipient.url_id
@@ -175,6 +177,8 @@ def recipient_edit(campaign, recipient):
         elif field == 'nickname':
             recipient.nickname = value or None
         else:
+            if recipient.data is None:
+                recipient.data = {}
             recipient.data[field] = value or None
         db.session.commit()
         return _("Saved"), 200
@@ -188,7 +192,9 @@ def recipient_edit(campaign, recipient):
     (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
     permission='delete',
 )
-def recipient_delete(campaign, recipient):
+def recipient_delete(
+    campaign: EmailCampaign, recipient: EmailRecipient
+) -> ResponseReturnValue:
     return render_delete_sqla(
         recipient,
         db,
@@ -210,7 +216,9 @@ def recipient_delete(campaign, recipient):
     (EmailRecipient, {'campaign': 'campaign', 'url_id': 'recipient'}, 'recipient'),
     permission='report',
 )
-def recipient_report(campaign, recipient):
+def recipient_report(
+    campaign: EmailCampaign, recipient: EmailRecipient
+) -> ResponseReturnValue:
     return render_template(
         'report.html.jinja2', campaign=campaign, recipient=recipient, wstep=6
     )

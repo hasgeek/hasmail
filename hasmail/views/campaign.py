@@ -3,8 +3,10 @@
 import csv
 from email.utils import formataddr
 from io import StringIO
+from typing import Any, Dict, List, Union
 
 from flask import Markup, flash, g, redirect, render_template, request, url_for
+from flask.typing import ResponseReturnValue
 from flask_mail import Message
 
 from baseframe.forms import render_delete_sqla, render_redirect
@@ -13,14 +15,22 @@ from coaster.views import load_model
 
 from .. import _, app, lastuser, mail, rq
 from ..forms import CampaignSendForm, CampaignSettingsForm
-from ..models import CAMPAIGN_STATUS, EmailCampaign, EmailRecipient, User, db
+from ..models import (
+    AppenderQuery,
+    EmailCampaign,
+    EmailCampaignState,
+    EmailRecipient,
+    User,
+    db,
+)
 from .diffpatch import update_recipient
 
 
-def import_from_csv(campaign, reader):
+def import_from_csv(campaign: EmailCampaign, reader: csv.DictReader) -> None:
     existing = {
+        # pylint: disable=protected-access
         r.email.lower()
-        for r in db.session.query(EmailRecipient.email)
+        for r in db.session.query(EmailRecipient._email)
         .filter(EmailRecipient.campaign == campaign)
         .all()
     }
@@ -32,8 +42,8 @@ def import_from_csv(campaign, reader):
 
         fullname = firstname = lastname = email = nickname = None
 
-        # The first column in each of the following is significant as that is the field name
-        # in the EmailRecipient model and is the name passed to the email template
+        # The first column in each of the following is significant as that is the field
+        # name in the EmailRecipient model and is the name passed to the email template
 
         # Now look for email (mandatory), first name, last name and full name
         for field in [
@@ -99,7 +109,7 @@ def import_from_csv(campaign, reader):
 @app.route('/mail/<campaign>', methods=('GET', 'POST'))
 @lastuser.requires_login
 @load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit')
-def campaign_view(campaign):
+def campaign_view(campaign: EmailCampaign) -> ResponseReturnValue:
     form = CampaignSettingsForm(obj=campaign)
     if form.validate_on_submit():
         form.populate_obj(campaign)
@@ -119,13 +129,14 @@ def campaign_view(campaign):
 @app.route('/mail/<campaign>/delete', methods=('GET', 'POST'))
 @lastuser.requires_login
 @load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='delete')
-def campaign_delete(campaign):
+def campaign_delete(campaign: EmailCampaign) -> ResponseReturnValue:
     return render_delete_sqla(
         campaign,
         db,
         title=_("Confirm delete"),
         message=_(
-            "Remove campaign ‘{title}’? This will delete ALL data related to the campaign. There is no undo."
+            "Remove campaign ‘{title}’? This will delete ALL data related to the"
+            " campaign. There is no undo."
         ).format(title=campaign.title),
         success=_(
             "You have deleted the ‘{title}’ campaign and ALL related data"
@@ -140,7 +151,9 @@ def campaign_delete(campaign):
 @load_model(
     EmailCampaign, {'name': 'campaign'}, 'campaign', permission='edit', kwargs=True
 )
-def campaign_recipients(campaign, kwargs):
+def campaign_recipients(
+    campaign: EmailCampaign, kwargs: Dict[str, Any]
+) -> ResponseReturnValue:
     page = kwargs.get('page', 1)
     return render_template(
         'recipients.html.jinja2', campaign=campaign, page=page, wstep=3
@@ -150,11 +163,11 @@ def campaign_recipients(campaign, kwargs):
 @app.route('/mail/<campaign>/send', methods=('GET', 'POST'))
 @lastuser.requires_login
 @load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='send')
-def campaign_send(campaign):
+def campaign_send(campaign: EmailCampaign) -> ResponseReturnValue:
     form = CampaignSendForm()
     form.email.choices = [(e, e) for e in lastuser.user_emails(g.user)]
     if form.validate_on_submit():
-        campaign.status = CAMPAIGN_STATUS.QUEUED
+        campaign.status = EmailCampaignState.QUEUED
         db.session.commit()
 
         campaign_send_do.queue(campaign.id, g.user.id, form.email.data, timeout=86400)
@@ -166,7 +179,8 @@ def campaign_send(campaign):
 @app.route('/mail/<campaign>/report')
 @lastuser.requires_login
 @load_model(EmailCampaign, {'name': 'campaign'}, 'campaign', permission='report')
-def campaign_report(campaign):
+def campaign_report(campaign: EmailCampaign) -> ResponseReturnValue:
+    recipients: Union[List[EmailRecipient], AppenderQuery[EmailRecipient]]
     count = campaign.recipients.count()
     if count > 1000:
         recipients = campaign.recipients
@@ -193,38 +207,40 @@ def campaign_report(campaign):
 
 
 @rq.job('hasmail')
-def campaign_send_do(campaign_id, user_id, email):
+def campaign_send_do(campaign_id: int, user_id: int, email: str) -> None:
     ctx = None
     if not request:
         ctx = app.test_request_context()
         ctx.push()
     campaign = EmailCampaign.query.get(campaign_id)
-    campaign.status = CAMPAIGN_STATUS.SENDING
+    if campaign is None:
+        return
+    campaign.status = EmailCampaignState.SENDING
     draft = campaign.draft()
+    if draft is None:
+        return
     user = User.query.get(user_id)
+    if user is None:
+        return
 
     # User wants to send. Perform all necessary activities:
-    # 1. Wrap links if click tracking is enabled, in the master template
-    # TODO
-    # 2. Update all drafts
+    # 1. Update all drafts
     for recipient in campaign.recipients_iter():
         if not recipient.rendered_text:
             update_recipient(recipient)
-            # 3. Wrap links in custom templates
-            # TODO
-            # 4. Generate rendering per recipient and mark recipient as sent
-            recipient.rendered_text = recipient.get_rendered(draft)
-            recipient.rendered_html = recipient.get_preview(draft)
-            # 5. Send message
+            # 2. Generate rendering per recipient and mark recipient as sent
+            recipient.rendered_text = recipient.get_rendered()
+            recipient.rendered_html = recipient.get_preview()
+            # 3. Send message
             msg = Message(
                 subject=(
                     recipient.subject
                     if recipient.subject is not None
                     else draft.subject
                 )
-                if recipient.draft
+                if recipient.custom_draft
                 else draft.subject,
-                sender=(user.fullname, email),
+                sender=formataddr((user.fullname, email)),
                 recipients=[formataddr((recipient.fullname or '', recipient.email))],
                 body=recipient.rendered_text,
                 html=Markup(recipient.rendered_html) + recipient.openmarkup(),
@@ -232,12 +248,11 @@ def campaign_send_do(campaign_id, user_id, email):
                 bcc=campaign.bcc.split('\n'),
             )
             mail.send(msg)
-            # print msg.recipients
-            # 6. Commit after each recipient
+            # 4. Commit after each recipient
             db.session.commit()
 
-    # Done!
-    campaign.status = CAMPAIGN_STATUS.SENT
+    # 5. Done!
+    campaign.status = EmailCampaignState.SENT
     db.session.commit()
 
     if ctx:

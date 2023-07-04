@@ -4,6 +4,7 @@ from base64 import b64decode
 from datetime import datetime
 
 from flask import render_template, request
+from flask.typing import ResponseReturnValue
 
 from .. import app
 from ..models import EmailRecipient, db
@@ -11,7 +12,7 @@ from ..models import EmailRecipient, db
 gif1x1 = b64decode(b'R0lGODlhAQABAJAAAP8AAAAAACH5BAUQAAAALAAAAAABAAEAAAICBAEAOw==')
 
 
-def track_open_inner(recipient, isopen=True):
+def track_open_inner(recipient: EmailRecipient, isopen: bool = True) -> None:
     recipient.opened = True
     now = datetime.utcnow()
     if not recipient.opened_ipaddr:
@@ -27,7 +28,7 @@ def track_open_inner(recipient, isopen=True):
 
 
 @app.route('/open/<opentoken>.gif')
-def track_open_gif(opentoken):
+def track_open_gif(opentoken) -> ResponseReturnValue:
     recipient = EmailRecipient.query.filter_by(opentoken=opentoken).first()
     if recipient is not None:
         track_open_inner(recipient, isopen=True)
@@ -55,7 +56,7 @@ def track_open_gif(opentoken):
 
 
 @app.route('/rsvp/<rsvptoken>/<status>')
-def rsvp(rsvptoken, status):
+def rsvp(rsvptoken, status) -> ResponseReturnValue:
     recipient = EmailRecipient.query.filter_by(rsvptoken=rsvptoken).first_or_404()
     status = status.upper()
     if status in ('Y', 'N', 'M'):

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
+from enum import IntEnum
 from typing import Any, Collection, Dict, Iterator, List, Optional, Set, Union
 
 import pystache
@@ -11,14 +12,7 @@ from flask import Markup, escape, request, url_for
 from premailer import transform as email_transform
 from sqlalchemy.orm import defer
 
-from coaster.utils import (
-    MARKDOWN_HTML_TAGS,
-    LabeledEnum,
-    buid,
-    markdown,
-    md5sum,
-    newsecret,
-)
+from coaster.utils import MARKDOWN_HTML_TAGS, buid, markdown, md5sum, newsecret
 from flask_lastuser.sqlalchemy import UserBase2
 
 from .. import __
@@ -35,7 +29,7 @@ from . import (
 )
 
 __all__ = [
-    'CAMPAIGN_STATUS',
+    'EmailCampaignState',
     'User',
     'EmailCampaign',
     'EmailDraft',
@@ -51,11 +45,21 @@ for _key in EMAIL_TAGS:
     EMAIL_TAGS[_key].append('style')
 
 
-class CAMPAIGN_STATUS(LabeledEnum):  # noqa: N801
-    DRAFT = (0, __("Draft"))
-    QUEUED = (1, __("Queued"))
-    SENDING = (2, __("Sending"))
-    SENT = (3, __("Sent"))
+class EmailCampaignState(IntEnum):
+    DRAFT = 0
+    QUEUED = 1
+    SENDING = 2
+    SENT = 3
+
+    __titles__ = {
+        DRAFT: __("Draft"),
+        QUEUED: __("Queued"),
+        SENDING: __("Sending"),
+        SENT: __("Sent"),
+    }
+
+    def __init__(self, value: int) -> None:
+        self.title = self.__titles__[value]
 
 
 class User(UserBase2, Model):
@@ -67,6 +71,8 @@ class User(UserBase2, Model):
 
 
 class EmailCampaign(BaseNameMixin, Model):
+    """A mailer sent to multiple recipients."""
+
     __tablename__ = 'email_campaign'
 
     user_id: Mapped[int] = sa.orm.mapped_column(
@@ -77,7 +83,7 @@ class EmailCampaign(BaseNameMixin, Model):
         back_populates='campaigns',
     )
     status: Mapped[int] = sa.orm.mapped_column(
-        sa.Integer, nullable=False, default=CAMPAIGN_STATUS.DRAFT
+        sa.Integer, nullable=False, default=EmailCampaignState.DRAFT
     )
     _fields: Mapped[str] = sa.orm.mapped_column(
         'fields', sa.UnicodeText, nullable=False, default=''
@@ -107,26 +113,35 @@ class EmailCampaign(BaseNameMixin, Model):
         order_by='EmailDraft.url_id',
     )
 
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        if 'name' not in kwargs:  # Use random name unless one was provided
+            self.name = buid()
+
     def __repr__(self) -> str:
-        return f'<EmailCampaign "{self.title}" ({CAMPAIGN_STATUS.get(self.status)})>'
+        return (
+            f'<EmailCampaign "{self.title}" ({EmailCampaignState(self.status).title})>'
+        )
 
     @property
     def fields(self) -> Collection[str]:
+        """Set or return template fields."""
         flist = self._fields.split(' ')
         while '' in flist:
             flist.remove('')
         return tuple(flist)
 
     @fields.setter
-    def fields(self, value: Collection[str]):
+    def fields(self, value: Collection[str]) -> None:
         self._fields = ' '.join(sorted(set(value)))
 
     @property
     def cc(self) -> str:
+        """Set or return CC recipients on email."""
         return self._cc
 
     @cc.setter
-    def cc(self, value: Union[str, Collection[str]]):
+    def cc(self, value: Union[str, Collection[str]]) -> None:
         if isinstance(value, str):
             value = [
                 _l.strip()
@@ -137,6 +152,7 @@ class EmailCampaign(BaseNameMixin, Model):
 
     @property
     def bcc(self) -> str:
+        """Set or return BCC recipients on email."""
         return self._bcc
 
     @bcc.setter
@@ -149,12 +165,8 @@ class EmailCampaign(BaseNameMixin, Model):
             ]
         self._bcc = '\n'.join(sorted(set(value)))
 
-    def __init__(self, **kwargs: Any) -> None:
-        super().__init__(**kwargs)
-        if 'name' not in kwargs:  # Use random name unless one was provided
-            self.name = buid()
-
     def recipients_iter(self) -> Iterator[EmailRecipient]:
+        """Iterate through recipients."""
         ids = [
             i.id
             for i in db.session.query(EmailRecipient.id)
@@ -168,10 +180,10 @@ class EmailCampaign(BaseNameMixin, Model):
                 yield recipient
 
     def permissions(
-        self, user: Optional[User], inherited: Optional[Set[str]] = None
+        self, actor: Optional[User], inherited: Optional[Set[str]] = None
     ) -> Set[str]:
-        perms = super().permissions(user, inherited)
-        if user is not None and user == self.user:
+        perms = super().permissions(actor, inherited)
+        if actor is not None and actor == self.user:
             perms.update(['edit', 'delete', 'send', 'new-recipient', 'report'])
         return perms
 
@@ -208,6 +220,8 @@ class EmailCampaign(BaseNameMixin, Model):
 
 
 class EmailDraft(BaseScopedIdMixin, Model):
+    """Revision-controlled draft of mailer text (a Mustache template)."""
+
     __tablename__ = 'email_draft'
 
     campaign_id: Mapped[int] = sa.orm.mapped_column(
@@ -237,12 +251,18 @@ class EmailDraft(BaseScopedIdMixin, Model):
 
 
 class EmailRecipient(BaseScopedIdMixin, Model):
+    """Recipient of a mailer."""
+
     __tablename__ = 'email_recipient'
 
     # Campaign this recipient is a part of
     campaign_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('email_campaign.id'), nullable=False
     )
+    campaign: Mapped[EmailCampaign] = relationship(
+        EmailCampaign, back_populates='recipients'
+    )
+    parent: Mapped[EmailCampaign] = sa.orm.synonym('campaign')
 
     _fullname: Mapped[Optional[str]] = sa.orm.mapped_column(
         'fullname', sa.Unicode(80), nullable=True
@@ -316,17 +336,11 @@ class EmailRecipient(BaseScopedIdMixin, Model):
     draft_id: Mapped[Optional[int]] = sa.orm.mapped_column(
         None, sa.ForeignKey('email_draft.id'), nullable=True
     )
-    draft: Mapped[EmailDraft] = relationship(EmailDraft)
+    draft: Mapped[Optional[EmailDraft]] = relationship(EmailDraft)
 
     # Recipients may be emailed as a group with all emails in the To field. Unique
     # number to identify them
     linkgroup: Mapped[Optional[int]] = sa.orm.mapped_column(sa.Integer, nullable=True)
-
-    campaign: Mapped[EmailCampaign] = relationship(
-        EmailCampaign,
-        back_populates='recipients',
-    )
-    parent: Mapped[EmailCampaign] = sa.orm.synonym('campaign')
 
     __table_args__ = (sa.UniqueConstraint('campaign_id', 'url_id'),)
 
@@ -402,7 +416,7 @@ class EmailRecipient(BaseScopedIdMixin, Model):
     def is_latest_draft(self) -> bool:
         if not self.draft:
             return True
-        return self.draft == self.campaign.drafts[-1]
+        return self.draft == self.campaign.draft()
 
     def make_linkgroup(self) -> None:
         if self.linkgroup is None and self.campaign is not None:
@@ -428,14 +442,17 @@ class EmailRecipient(BaseScopedIdMixin, Model):
             tdata.update(self.data)
         return tdata
 
-    def get_rendered(self, draft: EmailDraft) -> str:
-        # FIXME: Why does this ignore the parameter?
+    def get_rendered(self) -> str:
+        """Get rendered view"""
         if self.draft:
             return pystache.render(self.template or '', self.template_data())
-        return pystache.render(draft.template or '', self.template_data())
+        draft = self.campaign.draft()
+        if draft is not None:
+            return pystache.render(draft.template or '', self.template_data())
+        return ''
 
-    def get_preview(self, draft: EmailDraft) -> str:
-        return self.campaign.render_preview(self.get_rendered(draft))
+    def get_preview(self) -> str:
+        return self.campaign.render_preview(self.get_rendered())
 
     def url_for(self, action='view', _external=False, **kwargs) -> str:
         if action in {'view', 'template'}:
@@ -491,13 +508,17 @@ class EmailRecipient(BaseScopedIdMixin, Model):
             )
         return Markup('')
 
+    @property
+    def custom_draft(self) -> bool:
+        """Check if this recipient has a custom draft."""
+        return self.draft is not None
+
     @classmethod
     def custom_draft_in(cls, campaign: EmailCampaign) -> List[EmailRecipient]:
         return (
             cls.query.filter(
                 cls.campaign == campaign,
                 cls.draft.isnot(None),
-                cls.__table__.c.template_text.isnot(None),
             )
             .options(
                 defer(cls.created_at),

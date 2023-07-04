@@ -8,6 +8,7 @@ __all__ = ['CampaignSettingsForm', 'CampaignSendForm', 'TemplateForm']
 class CampaignSettingsForm(forms.Form):
     title = forms.StringField(
         __("What’s this email about?"),
+        description=__("A private description for your own reference"),
         validators=[forms.validators.DataRequired(__("This is required"))],
     )
 
@@ -41,10 +42,6 @@ class CampaignSettingsForm(forms.Form):
             "Best used if your email also includes images"
         ),
     )
-
-    # trackclicks = forms.BooleanField(__(u"Track clicks"), default=False,
-    #     description=__(u"All links in your email will be wrapped and clicks will be tracked "
-    #         u"so you know which recipient opened which links"))
 
 
 class CampaignSendForm(forms.Form):
