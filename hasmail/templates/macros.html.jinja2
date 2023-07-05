@@ -2,20 +2,38 @@
   <div class="list-group list-group-discreet {#- nav nav-pills nav-stacked nav-pills-filling nav-point-right -#}">
     <a class="list-group-item {%- if active == 't' %} active{% endif %}" href="{{ mailer.url_for('template') }}"><i class="fa fa-fw fa-pencil"></i>
       {% trans %}Write email{% endtrans %}</a>
-    {%- if recipients %}{%- if recipients.count() > 1000 %}
-      <span class="list-group-item"><i class="fa fa-fw fa-users"></i> {% trans %}Hidden{% endtrans %}</span>
-    {%- else %}{% for r in recipients %}
-      <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for() }}">
-        {%- if r.rendered_text -%}
-          <i class="fa fa-fw fa-send"></i>
-        {%- elif r.draft -%}
-          <i class="fa fa-fw fa-envelope"></i>
+    {%- if recipients %}
+      {%- with recipient_count = recipients.count() %}
+        {%- if recipient_count > 1000 %}
+          {%- for r in recipients.paginate(page=1, per_page=10).items %}
+            <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for() }}">
+              {%- if r.rendered_text -%}
+                <i class="fa fa-fw fa-send"></i>
+              {%- elif r.draft -%}
+                <i class="fa fa-fw fa-envelope"></i>
+              {%- else %}
+                <i class="fa fa-fw fa-envelope-o"></i>
+              {%- endif %}
+              {{ r.fullname }}
+            </a>
+          {%- endfor %}
+          <span class="list-group-item"><i class="fa fa-fw fa-users"></i> {% trans extra=(recipient_count-10)|numberformat %}+{{ extra }} hidden{% endtrans %}</span>
         {%- else %}
-          <i class="fa fa-fw fa-envelope-o"></i>
+          {%- for r in recipients %}
+            <a class="list-group-item {%- if active == r %} active{% endif %}" href="{{ r.url_for() }}">
+            {%- if r.rendered_text -%}
+              <i class="fa fa-fw fa-send"></i>
+            {%- elif r.draft -%}
+              <i class="fa fa-fw fa-envelope"></i>
+            {%- else %}
+              <i class="fa fa-fw fa-envelope-o"></i>
+            {%- endif %}
+            {{ r.fullname }}
+          </a>
+          {%- endfor %}
         {%- endif %}
-        {{ r.fullname }}
-      </a>
-    {% endfor %}{% endif %}{% endif %}
+      {%- endwith %}
+    {%- endif %}
   </div>
 {% endmacro %}
 
