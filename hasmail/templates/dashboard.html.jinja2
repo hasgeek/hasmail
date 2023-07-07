@@ -10,12 +10,12 @@
   </div>
 #}
   <ul class="nav nav-pills nav-stacked nav-pills-filling nav-point-right">
-    {%- if campaigns %}{% for c in campaigns %}
-      <li><a href="{{ c.url_for() }}">{{ c.title }}
-        {%- if c.status == STATUS.DRAFT %} <i class="fa fa-pencil"></i>
-        {%- elif c.status == STATUS.QUEUED %} <i class="fa fa-clock-o"></i>
-        {%- elif c.status == STATUS.SENDING %} <i class="fa fa-spin fa-spinner"></i>
-        {%- elif c.status == STATUS.SENT %} <i class="fa fa-envelope-o"></i>
+    {%- if mailers %}{% for mailer in mailers %}
+      <li><a href="{{ mailer.url_for() }}">{{ mailer.title }}
+        {%- if mailer.status == STATUS.DRAFT %} <i class="fa fa-pencil"></i>
+        {%- elif mailer.status == STATUS.QUEUED %} <i class="fa fa-clock-o"></i>
+        {%- elif mailer.status == STATUS.SENDING %} <i class="fa fa-spin fa-spinner"></i>
+        {%- elif mailer.status == STATUS.SENT %} <i class="fa fa-envelope-o"></i>
         {%- endif -%}
       </a></li>
     {% endfor %}{% endif %}
@@ -23,19 +23,19 @@
 {% endblock %}
 
 {% block contentpane %}
-  {%- if campaigns %}
+  {%- if mailer %}
     <p>
-      {% trans %}Pick an email from the sidebar or send a new one.{% endtrans %}
+      {% trans %}Pick a mailer from the sidebar or send a new one.{% endtrans %}
     </p>
   {%- else %}
     <p>
-      {% trans %}You haven’t written any mail yet.{% endtrans %}
+      {% trans %}You haven’t composed a mailer yet.{% endtrans %}
     </p>
   {%- endif %}
   <form method="POST">
     {{ form.hidden_tag() }}
     <p>
-      <button type="submit" class="btn btn-primary">{% trans %}New email{% endtrans %}</button>
+      <button type="submit" class="btn btn-primary">{% trans %}New mailer{% endtrans %}</button>
     </p>
   </form>
 {% endblock %}

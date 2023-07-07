@@ -6,13 +6,24 @@ import re
 from datetime import datetime
 from enum import IntEnum
 from typing import Any, Collection, Dict, Iterator, List, Optional, Set, Union
+from uuid import UUID
 
 import pystache
 from flask import Markup, escape, request, url_for
 from premailer import transform as email_transform
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import defer
 
-from coaster.utils import MARKDOWN_HTML_TAGS, buid, markdown, md5sum, newsecret
+from coaster.sqlalchemy import SqlUuidB64Comparator
+from coaster.utils import (
+    MARKDOWN_HTML_TAGS,
+    buid,
+    markdown,
+    md5sum,
+    newsecret,
+    uuid_from_base64,
+    uuid_to_base64,
+)
 from flask_lastuser.sqlalchemy import UserBase2
 
 from .. import __
@@ -69,23 +80,36 @@ class User(UserBase2, Model):
 
     __tablename__ = 'user'
 
-    campaigns: Mapped[List[Mailer]] = relationship(
+    uuid: Mapped[UUID] = sa.orm.mapped_column(unique=True)
+
+    mailers: Mapped[List[Mailer]] = relationship(
         back_populates='user', order_by='Mailer.updated_at.desc()'
     )
+
+    @hybrid_property
+    def userid(self) -> str:
+        """URL-friendly UUID representation, using URL-safe Base64 (BUID)."""
+        return uuid_to_base64(self.uuid)
+
+    @userid.inplace.setter
+    def _userid_setter(self, value: str) -> None:
+        """Set UUID in Base64 format."""
+        self.uuid = uuid_from_base64(value)
+
+    @userid.inplace.comparator
+    @classmethod
+    def _userid_comparator(cls) -> SqlUuidB64Comparator:
+        """Return SQL comparator for UUID in Base64 format."""
+        return SqlUuidB64Comparator(cls.uuid)
 
 
 class Mailer(BaseNameMixin, Model):
     """A mailer sent via email to multiple recipients."""
 
-    __tablename__ = 'email_campaign'
+    __tablename__ = 'mailer'
 
-    user_id: Mapped[int] = sa.orm.mapped_column(
-        sa.ForeignKey('user.id'), nullable=False
-    )
-    user: Mapped[User] = relationship(
-        User,
-        back_populates='campaigns',
-    )
+    user_uuid: Mapped[UUID] = sa.orm.mapped_column(sa.ForeignKey('user.uuid'))
+    user: Mapped[User] = relationship(User, back_populates='mailers')
     status: Mapped[int] = sa.orm.mapped_column(
         sa.Integer, nullable=False, default=MailerState.DRAFT
     )
@@ -93,9 +117,6 @@ class Mailer(BaseNameMixin, Model):
         'fields', sa.UnicodeText, nullable=False, default=''
     )
     trackopens: Mapped[bool] = sa.orm.mapped_column(
-        sa.Boolean, nullable=False, default=False
-    )
-    trackclicks: Mapped[bool] = sa.orm.mapped_column(
         sa.Boolean, nullable=False, default=False
     )
     stylesheet: Mapped[str] = sa.orm.mapped_column(
@@ -224,10 +245,10 @@ class Mailer(BaseNameMixin, Model):
 class MailerDraft(BaseScopedIdMixin, Model):
     """Revision-controlled draft of mailer text (a Mustache template)."""
 
-    __tablename__ = 'email_draft'
+    __tablename__ = 'mailer_draft'
 
     mailer_id: Mapped[int] = sa.orm.mapped_column(
-        'campaign_id', sa.ForeignKey('email_campaign.id'), nullable=False
+        sa.ForeignKey('mailer.id'), nullable=False
     )
     mailer: Mapped[Mailer] = relationship(Mailer, back_populates='drafts')
     parent: Mapped[Mailer] = sa.orm.synonym('mailer')
@@ -241,7 +262,7 @@ class MailerDraft(BaseScopedIdMixin, Model):
         sa.UnicodeText, nullable=False, default="", deferred=True
     )
 
-    __table_args__ = (sa.UniqueConstraint('campaign_id', 'url_id'),)
+    __table_args__ = (sa.UniqueConstraint('mailer_id', 'url_id'),)
 
     def __repr__(self) -> str:
         return f'<MailerDraft {self.revision_id} of {self.mailer!r}>'
@@ -253,12 +274,10 @@ class MailerDraft(BaseScopedIdMixin, Model):
 class MailerRecipient(BaseScopedIdMixin, Model):
     """Recipient of a mailer."""
 
-    __tablename__ = 'email_recipient'
+    __tablename__ = 'mailer_recipient'
 
     # Mailer this recipient is a part of
-    mailer_id: Mapped[int] = sa.orm.mapped_column(
-        'campaign_id', sa.ForeignKey('email_campaign.id'), nullable=False
-    )
+    mailer_id: Mapped[int] = sa.orm.mapped_column(sa.ForeignKey('mailer.id'))
     mailer: Mapped[Mailer] = relationship(Mailer, back_populates='recipients')
     parent: Mapped[Mailer] = sa.orm.synonym('mailer')
 
@@ -314,8 +333,6 @@ class MailerRecipient(BaseScopedIdMixin, Model):
     rsvp: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(1), nullable=True)
 
     # Customised template for this recipient
-    # TODO: Discover template for linked groups (only one recipient will have a custom
-    # template that is used for all)
     subject: Mapped[Optional[str]] = sa.orm.mapped_column(
         sa.Unicode(250), nullable=True
     )
@@ -334,15 +351,11 @@ class MailerRecipient(BaseScopedIdMixin, Model):
     # Draft of the mailer template that the custom template is linked to (for updating
     # before finalising)
     draft_id: Mapped[Optional[int]] = sa.orm.mapped_column(
-        None, sa.ForeignKey('email_draft.id'), nullable=True
+        sa.ForeignKey('mailer_draft.id')
     )
     draft: Mapped[Optional[MailerDraft]] = relationship(MailerDraft)
 
-    # Recipients may be emailed as a group with all emails in the To field. Unique
-    # number to identify them
-    linkgroup: Mapped[Optional[int]] = sa.orm.mapped_column(sa.Integer, nullable=True)
-
-    __table_args__ = (sa.UniqueConstraint('campaign_id', 'url_id'),)
+    __table_args__ = (sa.UniqueConstraint('mailer_id', 'url_id'),)
 
     def __repr__(self) -> str:
         return f'<MailerRecipient {self.fullname} {self.email} of {self.mailer!r}>'
@@ -417,15 +430,6 @@ class MailerRecipient(BaseScopedIdMixin, Model):
         if not self.draft:
             return True
         return self.draft == self.mailer.draft()
-
-    def make_linkgroup(self) -> None:
-        if self.linkgroup is None and self.mailer is not None:
-            self.linkgroup = (
-                db.session.query(MailerRecipient.linkgroup)
-                .filter(MailerRecipient.mailer == self.mailer)
-                .scalar()
-                or 0
-            ) + 1
 
     def template_data(self) -> Dict[str, Any]:
         tdata = {
