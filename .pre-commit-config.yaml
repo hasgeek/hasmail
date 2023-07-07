@@ -65,6 +65,7 @@ repos:
         # warn-unused-ignores is unsafe with pre-commit, see
         # https://github.com/python/mypy/issues/2960
         args: ['--no-warn-unused-ignores', '--ignore-missing-imports']
+        pass_filenames: false
         additional_dependencies:
           - alembic
           - flask

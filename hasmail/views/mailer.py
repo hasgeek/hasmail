@@ -211,7 +211,7 @@ def mailer_send_do(mailer_id: int, user_id: int, email: str) -> None:
     # User wants to send. Perform all necessary activities:
     # 1. Update all drafts
     for recipient in mailer.recipients_iter():
-        if not recipient.rendered_text:
+        if not recipient.is_sent:
             update_recipient(recipient)
             # 2. Generate rendering per recipient and mark recipient as sent
             recipient.rendered_text = recipient.get_rendered()
@@ -233,6 +233,7 @@ def mailer_send_do(mailer_id: int, user_id: int, email: str) -> None:
                 bcc=mailer.bcc.split('\n'),
             )
             mail.send(msg)
+            recipient.is_sent = True
             # 4. Commit after each recipient
             db.session.commit()
 
