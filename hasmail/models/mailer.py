@@ -284,6 +284,8 @@ class MailerRecipient(BaseScopedIdMixin, Model):
 
     data: Mapped[Optional[dict]] = sa.orm.mapped_column(JsonDict)
 
+    is_sent: Mapped[bool] = sa.orm.mapped_column(default=False)
+
     # Support email open tracking
     opentoken: Mapped[str] = sa.orm.mapped_column(
         sa.Unicode(44), nullable=False, default=newsecret, unique=True
