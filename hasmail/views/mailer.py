@@ -4,6 +4,7 @@ import csv
 from email.utils import formataddr
 from io import StringIO
 from typing import Any, Dict, List, Union
+from uuid import UUID
 
 from flask import Markup, flash, g, redirect, render_template, request, url_for
 from flask.typing import ResponseReturnValue
@@ -155,7 +156,7 @@ def mailer_send(mailer: Mailer) -> ResponseReturnValue:
         mailer.status = MailerState.QUEUED
         db.session.commit()
 
-        mailer_send_do.queue(mailer.id, g.user.id, form.email.data, timeout=86400)
+        mailer_send_do.queue(mailer.id, g.user.uuid, form.email.data, timeout=86400)
         flash(_("Your email has been queued for delivery"), 'success')
         return redirect(mailer.url_for('report'), code=303)
     return render_template('send.html.jinja2', mailer=mailer, form=form, wstep=5)
@@ -192,7 +193,7 @@ def mailer_report(mailer: Mailer) -> ResponseReturnValue:
 
 
 @rq.job('hasmail')
-def mailer_send_do(mailer_id: int, user_id: int, email: str) -> None:
+def mailer_send_do(mailer_id: int, user_uuid: UUID, email: str) -> None:
     ctx = None
     if not request:
         ctx = app.test_request_context()
@@ -204,9 +205,7 @@ def mailer_send_do(mailer_id: int, user_id: int, email: str) -> None:
     draft = mailer.draft()
     if draft is None:
         return
-    user = User.query.get(user_id)
-    if user is None:
-        return
+    user = User.query.filter_by(uuid=user_uuid).one()
 
     # User wants to send. Perform all necessary activities:
     # 1. Update all drafts

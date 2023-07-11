@@ -1,9 +1,10 @@
 """Index views."""
 
-from flask import g, redirect, render_template, url_for
+from flask import redirect, render_template, url_for
 from flask.typing import ResponseReturnValue
 
 from baseframe import forms
+from coaster.auth import current_auth
 
 from .. import _, app, lastuser
 from ..models import Mailer, MailerState, db
@@ -11,7 +12,7 @@ from ..models import Mailer, MailerState, db
 
 @app.route('/')
 def index() -> ResponseReturnValue:
-    if g.user:
+    if current_auth:
         return redirect(url_for('dashboard'), code=303)
     return render_template('index.html.jinja2')
 
@@ -23,13 +24,13 @@ def index() -> ResponseReturnValue:
 def dashboard() -> ResponseReturnValue:
     form = forms.Form()
     if form.validate_on_submit():
-        mailer = Mailer(title=_("Untitled Email"), user=g.user)
+        mailer = Mailer(title=_("Untitled Email"), user=current_auth.user)
         db.session.add(mailer)
         db.session.commit()
         return redirect(mailer.url_for(), 303)
     return render_template(
         'dashboard.html.jinja2',
-        campaigns=g.user.campaigns,
+        mailers=current_auth.user.mailers,
         form=form,
         wstep=1,
         STATUS=MailerState,
