@@ -130,9 +130,11 @@ def recipient_view(mailer: Mailer, recipient: MailerRecipient) -> ResponseReturn
             {
                 'template': ob.template,
                 'preview': recipient.get_preview(),
-                'subject': recipient.subject
-                if recipient.subject is not None
-                else draft.subject,
+                'subject': (
+                    recipient.subject
+                    if recipient.subject is not None
+                    else draft.subject
+                ),
                 'revision_id': ob.revision_id,
             }
         )
