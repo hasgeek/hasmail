@@ -218,12 +218,14 @@ def mailer_send_do(mailer_id: int, user_uuid: UUID, email: str) -> None:
             # 3. Send message
             msg = Message(
                 subject=(
-                    recipient.subject
-                    if recipient.subject is not None
+                    (
+                        recipient.subject
+                        if recipient.subject is not None
+                        else draft.subject
+                    )
+                    if recipient.custom_draft
                     else draft.subject
-                )
-                if recipient.custom_draft
-                else draft.subject,
+                ),
                 sender=formataddr((user.fullname, email)),
                 recipients=[formataddr((recipient.fullname or '', recipient.email))],
                 body=recipient.rendered_text,
