@@ -51,7 +51,6 @@ def mailer_template(mailer: Mailer) -> ResponseReturnValue:
                 'preview': draft.get_preview(),
                 'subject': draft.subject,
                 'revision_id': draft.revision_id,
-                'form_nonce': form.form_nonce.default(),
             }
         )
     return render_template('template.html.jinja2', mailer=mailer, wstep=4, form=form)
