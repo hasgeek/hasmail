@@ -72,7 +72,7 @@ class MailerState(IntEnum):
     }
 
     def __init__(self, value: int) -> None:
-        self.title = self.__titles__[value]
+        self.title = self.__titles__[value]  # pylint: disable=unsubscriptable-object
 
 
 class User(UserBase2, Model):
